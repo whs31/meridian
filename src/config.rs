@@ -1,18 +1,12 @@
-use std::collections::HashMap;
 use std::path::MAIN_SEPARATOR;
 use std::sync::Mutex;
 use ini::configparser::ini::Ini;
+use log::info;
 use once_cell::sync::Lazy;
 use crate::errors::Error;
-// pub static CONFIG: Lazy<Mutex<Box<Ini>>> = Lazy::new(
-//   || {
-//     let mut config = Ini::new();
-//     config.load("cfg_meridian.ini").unwrap();
-//     Mutex::new(Box::new(config))
-//   }
-// )
+use crate::utils::StaticHeapObject;
 
-pub static CONFIG: Lazy<Mutex<Box<Config>>> = Lazy::new(
+pub static CONFIG: StaticHeapObject<Config> = Lazy::new(
   || { Mutex::new(Box::new(Config::new())) }
 );
 
@@ -33,16 +27,18 @@ impl Config
     return match config.load(DEFAULT_FILENAME)
     {
       Ok(_) => {
+        info!("Loading existing config file: {DEFAULT_FILENAME}");
         Self {
           filename: DEFAULT_FILENAME.to_string(),
           ini: config
         }
       }
       Err(_) => {
+        info!("Created new config file: {DEFAULT_FILENAME}");
         config.set(ELEVATION_SECTION, "remote_url",
                    Some("http://uav.radar-mms.com/elevations".to_string()));
         config.set(ELEVATION_SECTION, "cache_dir",
-                   Some(format!("cache{MAIN_SEPARATOR}elevations").to_string()));
+                   Some(format!("cache{}elevations", MAIN_SEPARATOR).to_string()));
         config.write(DEFAULT_FILENAME).unwrap();
         Self {
           filename: DEFAULT_FILENAME.to_string(),

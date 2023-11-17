@@ -3,6 +3,7 @@ use log::warn;
 mod tile_storage;
 mod errors;
 mod config;
+mod utils;
 
 fn main()
 {
