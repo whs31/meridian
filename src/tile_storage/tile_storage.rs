@@ -5,6 +5,7 @@ use std::path::MAIN_SEPARATOR;
 use std::sync::Mutex;
 use log::{debug, error, info, warn};
 use once_cell::sync::Lazy;
+use chrono::Utc;
 use crate::config::CONFIG;
 use crate::errors::Error;
 use crate::tile_storage::tile_identity::TileIdentity;
@@ -72,6 +73,7 @@ impl TileStorage
 
   fn download_tile(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
+    let start = Utc::now().time();
     let target = self.get_absolute_path(signature);
     let source = self.get_url(signature);
     debug!("Downloading file {} from {}", target, source);
@@ -101,6 +103,9 @@ impl TileStorage
           debug!("Tile {:?} is cached, loading...", signature);
           self.insert(signature)?;
         }
+        let end = Utc::now().time();
+        let duration = (end - start).num_milliseconds();
+        info!("Tile {:?} downloaded and cached in {}ms", signature, duration);
         Ok(())
       },
       Err(_) => {
