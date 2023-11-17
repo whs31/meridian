@@ -1,0 +1,16 @@
+compose static:
+  stage: compose
+  tags: [linux]
+  needs:
+    - job: astra rust build
+    - job: windows rust build
+    - job: windows rust test
+      artifacts: true
+
+  script:
+    - chmod +x ./.gitlab/shell/compose-static.sh
+    - ./.gitlab/shell/compose-static.sh
+
+  artifacts:
+    paths: [ ./Windows, ./Linux  ]
+    expire_in: 1 week

@@ -1,0 +1,16 @@
+compose dynamic:
+  stage: compose
+  tags: [linux]
+  needs:
+    - job: astra rust build
+    - job: windows rust build
+    - job: windows rust test
+      artifacts: true
+
+  script:
+    - chmod +x ./.gitlab/shell/compose.sh
+    - ./.gitlab/shell/compose.sh
+
+  artifacts:
+    paths: [ ./Windows, ./Linux  ]
+    expire_in: 1 week
