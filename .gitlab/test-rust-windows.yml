@@ -1,0 +1,22 @@
+windows x86_64 test:
+  stage: test-rust
+  tags: [windows]
+  allow_failure: true
+  needs:
+    - job: astra rust test
+      artifacts: true
+
+  cache:
+    paths:
+      - Cargo.lock
+      - target/
+
+  script:
+    - dnf5 install -y openssl-devel
+    - cargo --version
+    - cargo +nightly test -- --format=json -Z unstable-options --report-time | junitify --out $CI_PROJECT_DIR/tests/
+
+  artifacts:
+    when: always
+    reports:
+      junit: $CI_PROJECT_DIR/tests/*.xml
