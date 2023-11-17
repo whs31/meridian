@@ -1,0 +1,3 @@
+[submodule "bindings/c++/libs/libra"]
+	path = bindings/c++/libs/libra
+	url = ../../qtex/libra.git
