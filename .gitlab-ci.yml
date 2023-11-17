@@ -8,6 +8,10 @@ include:
   - local: /.gitlab/build-rust-windows.yml
   - local: /.gitlab/test-rust.yml
   - local: /.gitlab/test-rust-windows.yml
+  - local: /.gitlab/compose-static.yml
+  - local: /.gitlab/compose-dynamic.yml
+  # - local: /.gitlab/finalize-c++.yml
+  # - local: /.gitlab/finalize-c#.yml
 
 stages:
   - build-rust
@@ -15,3 +19,4 @@ stages:
   - build-c++
   - test-c++
   - compose
+  - finalize

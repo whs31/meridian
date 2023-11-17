@@ -10,9 +10,13 @@ windows rust build:
     - cargo --version
     - cargo build --release --target x86_64-pc-windows-gnu
     - ls target/x86_64-pc-windows-gnu/release -la
+    - find . -name "*.dll.a" -type f
+    - find . -name "*.dll.a" -type f -delete
     - cp target/x86_64-pc-windows-gnu/release/*.dll .
+    - cp target/x86_64-pc-windows-gnu/release/*.a .
+    - mv libmeridian.a libmeridian_win.a
 
   artifacts:
     name: $CI_PROJECT_TITLE-$CI_JOB_NAME-$CI_COMMIT_TIMESTAMP-$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA
-    paths: [./*.dll]
+    paths: [./*.dll, ./*.a]
     expire_in: 1 week

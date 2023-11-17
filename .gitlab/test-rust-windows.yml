@@ -1,4 +1,4 @@
-windows x86_64 test:
+windows rust test:
   stage: test-rust
   tags: [windows]
   allow_failure: true

@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Dmitry Ryazancev <75864292+whs31@user.noreply.github.com>"]
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "staticlib"]
 bench = false
 
 [dependencies]
