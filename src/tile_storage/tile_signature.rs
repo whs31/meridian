@@ -1,4 +1,7 @@
+use std::path::MAIN_SEPARATOR;
 use crate::tile_storage::quarter::Quarter;
+
+pub static EXTENSION: &'static str = "tif";
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
 pub struct TileSignature
@@ -30,5 +33,12 @@ impl TileSignature
     if self.latitude >= 0 && self.longitude < 0 { return Quarter::TopLeft }
     if self.latitude >= 0 && self.longitude >= 0 { return Quarter::TopRight }
     return if self.latitude < 0 && self.longitude < 0 { Quarter::BottomLeft } else { Quarter::BottomRight }
+  }
+
+  pub fn to_relative_path(&self) -> String
+  {
+    return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}.{EXTENSION}",
+      self.quarter().to_u8(), self.latitude.abs(), self.longitude.abs()
+    ).to_string()
   }
 }
