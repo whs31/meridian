@@ -1,4 +1,3 @@
-use std::alloc::Layout;
 use crate::tile_storage::quarter::Quarter;
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug)]
