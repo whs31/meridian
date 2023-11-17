@@ -1,4 +1,4 @@
-use crate::tile_storage::tile_signature::TileSignature;
+use crate::elevation::elevation::elevation_at;
 use crate::tile_storage::tile_storage::STORAGE;
 
 mod tile_storage;
@@ -10,9 +10,8 @@ mod elevation;
 fn main()
 {
   pretty_env_logger::init();
-  let mut cfg = STORAGE.lock().unwrap();
-  let x = cfg.get_or_emplace(TileSignature::from_f64(
-    60.0, 30.0
-  ));
-  println!("{}", x.is_ok());
+  let x = elevation_at((0.0, 0.0));
+  let y = elevation_at((60.0, 30.0));
+  let z = elevation_at((61.0, 31.0));
+  println!("{} {} {}", x.unwrap_or(-404.0), y.unwrap_or(-404.0), z.unwrap_or(-404.0));
 }

@@ -1,4 +1,5 @@
 use std::path::MAIN_SEPARATOR;
+use nav_types::WGS84;
 use crate::tile_storage::quarter::Quarter;
 
 pub static EXTENSION: &'static str = "tif";
@@ -39,9 +40,20 @@ impl TileSignature
   pub fn to_relative_path(&self) -> String
   {
     return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}.{EXTENSION}",
-      self.quarter().to_u8(),
-      self.latitude.abs(),
-      self.longitude.abs()
+                   self.quarter().to_u8(),
+                   self.latitude.abs(),
+                   self.longitude.abs()
     ).to_string()
+  }
+
+  pub fn georectangle_size(&self) -> (usize, usize)
+  {
+    (WGS84::from_degrees_and_meters(self.latitude as f64, self.longitude as f64, 0.0)
+       .distance(&WGS84::from_degrees_and_meters((self.latitude + 1) as f64, self.longitude as
+         f64, 0.0)) as usize,
+     WGS84::from_degrees_and_meters(self.latitude as f64, (self.longitude + 1) as f64, 0.0)
+       .distance(&WGS84::from_degrees_and_meters(self.latitude as f64, (self.longitude + 1) as
+         f64, 0.0)) as usize
+    )
   }
 }
