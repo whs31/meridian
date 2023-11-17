@@ -57,9 +57,7 @@ impl TileStorage
     debug!("Checking if signature {:?} is cached...", signature);
     if self.is_cached(signature.clone()) {
       debug!("Tile {:?} is cached, loading...", signature);
-      self.table.insert(signature, Box::new(TileIdentity::new(
-        self.get_absolute_path(&signature)
-      )));
+      self.insert(&signature)?;
       return self.get(signature);
     }
     info!("Tile {:?} is not available, downloading...", signature);
@@ -101,9 +99,7 @@ impl TileStorage
         debug!("Checking if signature {:?} is cached...", signature);
         if self.is_cached(signature.clone()) {
           debug!("Tile {:?} is cached, loading...", signature);
-          self.table.insert(*signature, Box::new(TileIdentity::new(
-            self.get_absolute_path(&signature)
-          )));
+          self.insert(signature)?;
         }
         Ok(())
       },
@@ -112,6 +108,20 @@ impl TileStorage
         Err(Error::NetworkFailure)
       }
     }
+  }
+
+  fn insert(&mut self, signature: &TileSignature) -> Result<(), Error>
+  {
+    self.table.insert(*signature, Box::new(match TileIdentity::new(
+      self.get_absolute_path(&signature)
+    ) {
+      Ok(x) => { x },
+      Err(e) => {
+        error!("Failed to decode tiff file from {}", self.get_absolute_path(&signature));
+        return Err(e);
+      }
+    }));
+    Ok(())
   }
 
   fn get_absolute_path(&self, signature: &TileSignature) -> String

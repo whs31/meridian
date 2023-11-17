@@ -11,6 +11,7 @@ pub enum Quarter
 
 impl Quarter
 {
+  #[allow(dead_code)]
   pub fn from_str(value: &str) -> Result<Self, Error>
   {
     if value.len() != 1 { return Err(Error::InvalidQuarterDirectorySpecifier) }
@@ -27,6 +28,7 @@ impl Quarter
     }
   }
 
+  #[allow(dead_code)]
   pub fn signs(&self) -> (i8, i16)
   {
     return match self {

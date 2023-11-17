@@ -12,6 +12,7 @@ pub struct TileSignature
 
 impl TileSignature
 {
+  #[allow(dead_code)]
   pub fn new(latitude: i8, longitude: i16) -> Self
   {
     Self {
@@ -38,7 +39,9 @@ impl TileSignature
   pub fn to_relative_path(&self) -> String
   {
     return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}.{EXTENSION}",
-      self.quarter().to_u8(), self.latitude.abs(), self.longitude.abs()
+      self.quarter().to_u8(),
+      self.latitude.abs(),
+      self.longitude.abs()
     ).to_string()
   }
 }
