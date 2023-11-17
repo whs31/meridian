@@ -5,6 +5,7 @@ mod tile_storage;
 mod errors;
 mod config;
 mod utils;
+mod elevation;
 
 fn main()
 {

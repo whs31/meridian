@@ -6,5 +6,7 @@ pub enum Error
   NetworkFailure,
   InvalidQuarterDirectorySpecifier,
   ConfigMissingKey,
-  TiffError
+  TiffError,
+  InvalidCoordinate,
+  ImageSizeError
 }

@@ -6,7 +6,8 @@ use chrono::Utc;
 pub struct TileIdentity
 {
   pub file_path: String,
-  pub data: Box<GeoTiff>
+  pub data: Box<GeoTiff>,
+  pub size: (usize, usize)
 }
 
 impl TileIdentity
@@ -26,9 +27,19 @@ impl TileIdentity
     debug!("Decoding status: OK");
     info!("Decoding tiff file from {} took {}ms", file_path, (end - start).num_milliseconds());
 
+    let im_size = match imagesize::size(&file_path) {
+      Ok(x) => { x },
+      Err(_) => {
+        warn!("Failed to get image size from {}", file_path);
+        return Err(Error::ImageSizeError);
+      }
+    };
+    debug!("Image size: {:?}", im_size);
+
     Ok(Self {
       file_path,
-      data: Box::new(data_raw)
+      data: Box::new(data_raw),
+      size: (im_size.width, im_size.height)
     })
   }
 }
