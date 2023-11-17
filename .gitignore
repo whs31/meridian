@@ -2,3 +2,4 @@
 .idea/*
 Cargo.lock
 cfg_meridian.ini
+cache/*

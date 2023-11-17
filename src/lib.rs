@@ -27,7 +27,6 @@ mod tests
   #[test]
   fn test_elevation_at()
   {
-    init_logger();
     assert!(elevation_at((0.0, 0.0)).is_err());
     assert!(elevation_at((60.0, 30.0)).unwrap().abs() - 0.0 < 1.0);
     assert!(elevation_at((61.0, 31.0)).unwrap().abs() - 3.0 < 1.0);
