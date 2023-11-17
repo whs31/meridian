@@ -1,0 +1,17 @@
+astra rust test:
+  stage: test-rust
+  tags: [alse]
+  allow_failure: true
+  needs:
+    - job: astra rust build
+    - job: windows rust build
+      artifacts: true
+
+  cache:
+    paths:
+      - Cargo.lock
+      - target/
+
+  script:
+    - cargo --version
+    - cargo test

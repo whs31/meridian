@@ -1,0 +1,17 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_DEPTH: 100
+  PKG_VER: 0.0.0
+
+include:
+  - local: /.gitlab/build-rust-astra.yml
+  - local: /.gitlab/build-rust-windows.yml
+  - local: /.gitlab/test-rust.yml
+  - local: /.gitlab/test-rust-windows.yml
+
+stages:
+  - build-rust
+  - test-rust
+  - build-c++
+  - test-c++
+  - compose
