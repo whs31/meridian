@@ -8,5 +8,7 @@ pub enum Error
   ConfigMissingKey,
   TiffError,
   InvalidCoordinate,
-  ImageSizeError
+  ImageSizeError,
+  EmptyPath,
+  OperationOnInvalidCoordinate
 }
