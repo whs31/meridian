@@ -13,4 +13,3 @@ test c++ astra:
   artifacts:
     reports:
       junit: ./test_detail.xml
-    expire_in: 1 week

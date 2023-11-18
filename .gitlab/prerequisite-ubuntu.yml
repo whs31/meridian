@@ -6,7 +6,6 @@ prerequisite ubuntu:
     - update-ca-certificates
     - apt-get install -y googletest
     - apt-get install -y libgtest-dev
-    - apt-get remove -y cargo rustc
     - apt autoremove -y
     - curl https://sh.rustup.rs -sSf | sh -s -- -y
     - source $HOME/.cargo/env

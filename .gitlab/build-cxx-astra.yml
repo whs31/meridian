@@ -16,4 +16,4 @@ build c++ astra:
 
   artifacts:
     paths: [ ./MeridianTest ]
-    expire_in: 1 week
+    expire_in: 1 hour

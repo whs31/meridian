@@ -13,4 +13,4 @@ compose dynamic:
 
   artifacts:
     paths: [ ./Windows, ./Linux  ]
-    expire_in: 1 week
+    expire_in: 1 hour
