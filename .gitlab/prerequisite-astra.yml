@@ -1,0 +1,7 @@
+prerequisite astra:
+  tags: [alse]
+  stage: prerequisites
+  script:
+    - apt-get install -y googletest
+    - apt-get install -y libgtest-dev
+    - cargo --version

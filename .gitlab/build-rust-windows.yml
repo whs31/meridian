@@ -1,6 +1,8 @@
 windows rust build:
   stage: build-rust
   tags: [windows]
+  needs:
+    - job: prerequisite windows
   cache:
     paths:
       - Cargo.lock

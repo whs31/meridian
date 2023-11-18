@@ -17,6 +17,17 @@ set(CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS ON)
 
 option(BUILD_TESTS "Build tests" ON)
 
+if(NOT WIN32)
+  set(OPENSSL_USE_STATIC_LIBS TRUE)
+  find_package(PkgConfig REQUIRED)
+  pkg_search_module(OPENSSL REQUIRED openssl)
+  if(OPENSSL_FOUND)
+    include_directories(${OPENSSL_INCLUDE_DIRS})
+    message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+  endif()
+  find_package(Threads REQUIRED)
+endif()
+
 if(BUILD_TESTS)
   message(NOTICE "-- [Meridian] Tests enabled!")
   if(WIN32)
@@ -43,24 +54,22 @@ if(WIN32)
   set_target_properties(MeridianStaticRust PROPERTIES IMPORTED_LOCATION
     ${PROJECT_SOURCE_DIR}/plugins/Windows/x64/libmeridian.a
   )
-elseif(LINUX)
+else()
   message(STATUS "[Meridian] Searching for .a in ${PROJECT_SOURCE_DIR}/plugins/Linux/x64/libmeridian.a")
   set_target_properties(MeridianStaticRust PROPERTIES IMPORTED_LOCATION
     ${PROJECT_SOURCE_DIR}/plugins/Linux/x64/libmeridian.a
   )
-else()
-  message(FATAL_ERROR "[Meridian] Unknown system arch.")
 endif()
 
 add_library(${PROJECT_NAME} STATIC)
 
 target_sources(${PROJECT_NAME}
   PUBLIC
-    include/Meridian/Meridian
-    include/Meridian/meridian_wrapper.h
-    include/Meridian/meridian_rust_ffi.h
+  include/Meridian/Meridian
+  include/Meridian/meridian_wrapper.h
+  include/Meridian/meridian_rust_ffi.h
   PRIVATE
-    src/c++/meridian_wrapper.c++
+  src/c++/meridian_wrapper.c++
 )
 
 if(WIN32)
@@ -68,6 +77,7 @@ if(WIN32)
     PUBLIC
       Libra
       MeridianStaticRust
+    PRIVATE
       wsock32
       ws2_32
       ntdll
@@ -77,8 +87,19 @@ if(WIN32)
       secur32
       ncrypt
   )
+else()
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+      Libra
+      MeridianStaticRust
+    PRIVATE
+      ${OPENSSL_LIBRARIES}
+      dl
+      ssl
+      crypto
+      ${CMAKE_THREAD_LIBS_INIT}
+  )
 endif()
-
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -91,7 +112,7 @@ if(BUILD_TESTS)
   message(NOTICE "-- [Meridian] Building test executable")
   file(GLOB_RECURSE TEST_SOURCES tests/*)
   add_executable(${PROJECT_NAME}Test ${TEST_SOURCES})
-  target_link_libraries(${PROJECT_NAME}Test ${PROJECT_NAME} GTest::gtest)
+  target_link_libraries(${PROJECT_NAME}Test ${PROJECT_NAME} ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
   target_include_directories(${PROJECT_NAME}Test PRIVATE tests)
 endif()
 

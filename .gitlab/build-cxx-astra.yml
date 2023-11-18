@@ -1,0 +1,19 @@
+build c++ astra:
+  stage: build-c++
+  tags: [alse]
+  needs:
+    - job: compose static
+      artifacts: true
+
+  script:
+    - cp -r ./Windows ./bindings/c++/plugins
+    - cp -r ./Linux ./bindings/c++/plugins
+    - cd bindings/c++
+    - cmake-alse -GNinja -DBUILD_TESTS=ON && ninja
+    - cd ..
+    - cd ..
+    - cp bindings/c++/MeridianTest .
+
+  artifacts:
+    paths: [ ./MeridianTest ]
+    expire_in: 1 week

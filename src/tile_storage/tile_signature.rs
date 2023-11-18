@@ -51,7 +51,7 @@ impl TileSignature
     (WGS84::from_degrees_and_meters(self.latitude as f64, self.longitude as f64, 0.0)
        .distance(&WGS84::from_degrees_and_meters((self.latitude + 1) as f64, self.longitude as
          f64, 0.0)) as usize,
-     WGS84::from_degrees_and_meters(self.latitude as f64, (self.longitude + 1) as f64, 0.0)
+     WGS84::from_degrees_and_meters(self.latitude as f64, self.longitude as f64, 0.0)
        .distance(&WGS84::from_degrees_and_meters(self.latitude as f64, (self.longitude + 1) as
          f64, 0.0)) as usize
     )
