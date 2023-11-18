@@ -1,0 +1,15 @@
+test c++ ubuntu:
+  stage: test-c++
+  tags: [ubuntu]
+  allow_failure: true
+  needs:
+    - job: build c++ ubuntu
+      artifacts: true
+
+  script:
+    - ls -la
+    - ./MeridianTest --gtest_output=xml --platform=linuxfb
+
+  artifacts:
+    reports:
+      junit: ./test_detail.xml

@@ -15,7 +15,9 @@ include:
   - local: /.gitlab/compose-static.yml
   - local: /.gitlab/compose-dynamic.yml
   - local: /.gitlab/build-cxx-astra.yml
+  - local: /.gitlab/build-cxx-ubuntu.yml
   - local: /.gitlab/test-cxx-astra.yml
+  - local: /.gitlab/test-cxx-ubuntu.yml
   # - local: /.gitlab/finalize-c++.yml
   # - local: /.gitlab/finalize-c#.yml
 
