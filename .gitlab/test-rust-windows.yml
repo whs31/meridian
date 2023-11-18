@@ -3,7 +3,7 @@ windows rust test:
   tags: [windows]
   allow_failure: true
   needs:
-    - job: astra rust test
+    - job: windows rust build
       artifacts: true
 
   cache:
@@ -12,7 +12,6 @@ windows rust test:
       - target/
 
   script:
-    - dnf5 install -y openssl-devel
     - cargo --version
     - cargo +nightly test -- --format=json -Z unstable-options --report-time | junitify --out $CI_PROJECT_DIR/tests/
 

@@ -4,7 +4,6 @@ astra rust test:
   allow_failure: true
   needs:
     - job: astra rust build
-    - job: windows rust build
       artifacts: true
 
   cache:

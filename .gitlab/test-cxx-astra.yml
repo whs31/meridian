@@ -1,0 +1,16 @@
+test c++ astra:
+  stage: test-c++
+  tags: [alse]
+  allow_failure: true
+  needs:
+    - job: build c++ astra
+      artifacts: true
+
+  script:
+    - ls -la
+    - ./MeridianTest --gtest_output=xml --platform=linuxfb
+
+  artifacts:
+    reports:
+      junit: ./test_detail.xml
+    expire_in: 1 week

@@ -1,0 +1,14 @@
+prerequisite ubuntu:
+  tags: [ubuntu]
+  stage: prerequisites
+  script:
+    - apt-get reinstall -y ca-certificates
+    - update-ca-certificates
+    - apt-get install -y googletest
+    - apt-get install -y libgtest-dev
+    - apt-get remove -y cargo rustc
+    - curl https://sh.rustup.rs -sSf | sh -s -- -y
+    - source $HOME/.cargo/env
+    - cargo --version
+    - export http_proxy='http://192.168.18.2:3128'
+    - export https_proxy=$http_proxy

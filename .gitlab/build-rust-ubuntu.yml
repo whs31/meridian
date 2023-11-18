@@ -1,14 +1,16 @@
-astra rust build:
+ubuntu rust build:
   stage: build-rust
-  tags: [alse]
+  tags: [ubuntu]
   needs:
-    - job: prerequisite astra
-  cache:
-      paths:
-        - Cargo.lock
-        - target/
+    - job: prerequisite ubuntu
+#  cache:
+#    paths:
+#      - Cargo.lock
+#      - target/
 
   script:
+    - rm -rf target
+    - rm -rf Cargo.lock
     - cargo build --release
     - ls target/release -la
     - cp target/release/*.so .

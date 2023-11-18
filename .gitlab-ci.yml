@@ -4,19 +4,26 @@ variables:
   PKG_VER: 0.0.0
 
 include:
+  - local: /.gitlab/prerequisite-astra.yml
+  - local: /.gitlab/prerequisite-ubuntu.yml
+  - local: /.gitlab/prerequisite-windows.yml
   - local: /.gitlab/build-rust-astra.yml
+  - local: /.gitlab/build-rust-ubuntu.yml
   - local: /.gitlab/build-rust-windows.yml
   - local: /.gitlab/test-rust.yml
   - local: /.gitlab/test-rust-windows.yml
   - local: /.gitlab/compose-static.yml
   - local: /.gitlab/compose-dynamic.yml
+  - local: /.gitlab/build-cxx-astra.yml
+  - local: /.gitlab/test-cxx-astra.yml
   # - local: /.gitlab/finalize-c++.yml
   # - local: /.gitlab/finalize-c#.yml
 
 stages:
+  - prerequisites
   - build-rust
   - test-rust
+  - compose
   - build-c++
   - test-c++
-  - compose
   - finalize

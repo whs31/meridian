@@ -1,0 +1,6 @@
+prerequisite windows:
+  tags: [windows]
+  stage: prerequisites
+  script:
+    - dnf5 install -y openssl-devel
+    - cargo --version
