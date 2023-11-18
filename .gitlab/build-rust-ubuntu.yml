@@ -3,14 +3,12 @@ ubuntu rust build:
   tags: [ubuntu]
   needs:
     - job: prerequisite ubuntu
-#  cache:
-#    paths:
-#      - Cargo.lock
-#      - target/
+  cache:
+    paths:
+      - Cargo.lock
+      - target/
 
   script:
-    - rm -rf target
-    - rm -rf Cargo.lock
     - cargo build --release
     - ls target/release -la
     - cp target/release/*.so .
