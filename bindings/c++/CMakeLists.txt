@@ -15,7 +15,7 @@ endif()
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "Export all symbols")
 set(CMAKE_SHARED_LIBRARY_ENABLE_EXPORTS ON)
 
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 
 if(NOT WIN32)
   set(OPENSSL_USE_STATIC_LIBS TRUE)
@@ -47,29 +47,41 @@ else()
 endif()
 
 add_subdirectory(libs/libra)
+
+set(MERIDIAN_RLIB_WINDOWS ${PROJECT_SOURCE_DIR}/plugins/Windows/x64/libmeridian.a)
+set(MERIDIAN_RLIB_LINUX ${PROJECT_SOURCE_DIR}/plugins/Linux/x64/libmeridian.a)
+
+if(EXISTS "${MERIDIAN_RLIB_WINDOWS}")
+  message(STATUS "[Meridian] RLib for Windows found")
+else()
+  message(FATAL_ERROR "[Meridian] RLib for Windows not found!")
+endif()
+
+if(EXISTS "${MERIDIAN_RLIB_LINUX}")
+  message(STATUS "[Meridian] RLib for Linux found")
+else()
+  message(FATAL_ERROR "[Meridian] RLib for Linux not found!")
+endif()
+
 add_library(MeridianStaticRust STATIC IMPORTED GLOBAL)
 
 if(WIN32)
-  message(STATUS "[Meridian] Searching for .a in ${PROJECT_SOURCE_DIR}/plugins/Windows/x64/libmeridian.a")
-  set_target_properties(MeridianStaticRust PROPERTIES IMPORTED_LOCATION
-    ${PROJECT_SOURCE_DIR}/plugins/Windows/x64/libmeridian.a
-  )
+  message(STATUS "[Meridian] Searching for .a in ${MERIDIAN_RLIB_WINDOWS}")
+  set_target_properties(MeridianStaticRust PROPERTIES IMPORTED_LOCATION ${MERIDIAN_RLIB_WINDOWS})
 else()
-  message(STATUS "[Meridian] Searching for .a in ${PROJECT_SOURCE_DIR}/plugins/Linux/x64/libmeridian.a")
-  set_target_properties(MeridianStaticRust PROPERTIES IMPORTED_LOCATION
-    ${PROJECT_SOURCE_DIR}/plugins/Linux/x64/libmeridian.a
-  )
+  message(STATUS "[Meridian] Searching for .a in ${MERIDIAN_RLIB_LINUX}")
+  set_target_properties(MeridianStaticRust PROPERTIES IMPORTED_LOCATION ${MERIDIAN_RLIB_LINUX})
 endif()
 
 add_library(${PROJECT_NAME} STATIC)
 
 target_sources(${PROJECT_NAME}
   PUBLIC
-  include/Meridian/Meridian
-  include/Meridian/meridian_wrapper.h
-  include/Meridian/meridian_rust_ffi.h
+    include/Meridian/Meridian
+    include/Meridian/meridian_wrapper.h
+    include/Meridian/meridian_rust_ffi.h
   PRIVATE
-  src/c++/meridian_wrapper.c++
+    src/c++/meridian_wrapper.c++
 )
 
 if(WIN32)
