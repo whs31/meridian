@@ -5,6 +5,7 @@ use crate::positioning::utils::{clip_longitude, is_valid_latitude};
 
 #[derive(Debug)]
 #[derive(PartialEq)]
+#[derive(Copy, Clone)]
 pub enum GeoCoordinateType
 {
   InvalidCoordinate,
