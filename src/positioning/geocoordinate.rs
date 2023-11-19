@@ -1,4 +1,3 @@
-use nav_types::WGS84;
 use crate::errors::Error;
 use crate::positioning::consts;
 use crate::positioning::utils::{clip_longitude, is_valid_latitude};
@@ -31,11 +30,6 @@ impl GeoCoordinate
       longitude,
       altitude
     }
-  }
-
-  pub fn to_wgs84(&self) -> WGS84<f64>
-  {
-    WGS84::from_degrees_and_meters(self.latitude, self.longitude, self.altitude)
   }
 
   pub fn coordinate_type(&self) -> GeoCoordinateType

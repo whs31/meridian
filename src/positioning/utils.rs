@@ -25,21 +25,21 @@ pub fn clip_longitude(lon: f64) -> f64
   lon
 }
 
-pub fn geopath_length(path: Vec<GeoCoordinate>, from: usize, mut to: usize) -> Result<f32, Error>
+pub fn geopath_length(path: Vec<GeoCoordinate>, from: usize, mut to: isize) -> Result<f32, Error>
 {
   if path.is_empty() {
     return Err(Error::EmptyPath);
   }
   let wrap = to == -1;
-  if to < 0 || to >= path.len() {
-    to = path.len() - 1;
+  if to < 0 || to >= path.len().try_into().unwrap() {
+    to = path.len() as isize - 1;
   }
   let mut len = 0.0_f32;
-  for i in from..to {
-    len += path[i].to_wgs84().distance(&path[i + 1].to_wgs84());
+  for i in from..to as usize {
+    len += path[i].distance_to(&path[i + 1])?;
   }
   if wrap {
-    len += path.last().unwrap().to_wgs84().distance(&path.first().unwrap().to_wgs84());
+    len += path.last().unwrap().distance_to(&path.first().unwrap())?;
   }
   Ok(len)
 }

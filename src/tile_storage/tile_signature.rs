@@ -1,5 +1,5 @@
 use std::path::MAIN_SEPARATOR;
-use nav_types::WGS84;
+use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::quarter::Quarter;
 
 pub static EXTENSION: &'static str = "tif";
@@ -48,12 +48,13 @@ impl TileSignature
 
   pub fn georectangle_size(&self) -> (usize, usize)
   {
-    (WGS84::from_degrees_and_meters(self.latitude as f64, self.longitude as f64, 0.0)
-       .distance(&WGS84::from_degrees_and_meters((self.latitude + 1) as f64, self.longitude as
-         f64, 0.0)) as usize,
-     WGS84::from_degrees_and_meters(self.latitude as f64, self.longitude as f64, 0.0)
-       .distance(&WGS84::from_degrees_and_meters(self.latitude as f64, (self.longitude + 1) as
-         f64, 0.0)) as usize
+    (
+      GeoCoordinate::new(self.latitude as f64, self.longitude as f64, 0.0)
+        .distance_to(&GeoCoordinate::new((self.latitude + 1) as f64, self.longitude as f64, 0.0))
+        .unwrap() as usize,
+      GeoCoordinate::new(self.latitude as f64, self.longitude as f64, 0.0)
+        .distance_to(&GeoCoordinate::new(self.latitude as f64, (self.longitude + 1) as f64, 0.0))
+        .unwrap() as usize
     )
   }
 }
