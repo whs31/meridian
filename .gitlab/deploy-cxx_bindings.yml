@@ -1,0 +1,28 @@
+deploy c++ bindings:
+  stage: deploy
+  tags: [alse]
+  needs:
+    - job: compose static
+    - job: build c++ astra
+    - job: build c++ ubuntu
+      artifacts: true
+
+  script:
+    - mkdir Meridian
+    - ls -la
+    - cp -r ./Windows ./Meridian/plugins
+    - cp -r ./Linux ./Meridian/plugins
+    - cp -r ./bindings/c++/include ./Meridian/include
+    - cp -r ./bindings/c++/libs ./Meridian/libs
+    - cp -r ./bindings/c++/src ./Meridian/src
+    - cp -r ./bindings/c++/tests ./Meridian/tests
+    - cp ./bindings/c++/CMakeLists.txt ./Meridian/CMakeLists.txt
+    - cp ./bindings/c++/vcpkg.json ./Meridian/vcpkg.json
+    - cp ./bindings/c++/.gitignore ./Meridian/.gitignore
+    - rm ./Meridian/libs/libra/.git
+    - rm ./Meridian/libs/libra/.gitmodules
+    - rm ./Meridian/libs/libra/libs/3rd-party/tl-expected/.git
+
+  artifacts:
+    paths: [ ./Meridian ]
+    expire_in: 1 hour

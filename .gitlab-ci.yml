@@ -18,8 +18,7 @@ include:
   - local: /.gitlab/build-cxx-ubuntu.yml
   - local: /.gitlab/test-cxx-astra.yml
   - local: /.gitlab/test-cxx-ubuntu.yml
-  # - local: /.gitlab/finalize-c++.yml
-  # - local: /.gitlab/finalize-c#.yml
+  - local: /.gitlab/deploy-cxx-bindings.yml
 
 stages:
   - prerequisites
@@ -28,4 +27,4 @@ stages:
   - compose
   - build-c++
   - test-c++
-  - finalize
+  - deploy
