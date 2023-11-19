@@ -1,6 +1,7 @@
 use nav_types::WGS84;
 use crate::errors::Error;
-use crate::positioning::utils::is_valid_latitude;
+use crate::positioning::consts;
+use crate::positioning::utils::{clip_longitude, is_valid_latitude};
 
 #[derive(Debug)]
 #[derive(PartialEq)]
@@ -66,5 +67,39 @@ impl GeoCoordinate
     let whole = azimuth.trunc();
     let fraction = azimuth.fract();
     Ok(((whole + 360.0) as i32 % 360) as f32 + fraction as f32)
+  }
+
+  pub fn distance_to(&self, other: &GeoCoordinate) -> Result<f32, Error>
+  {
+    if !self.valid() || !other.valid() {
+      return Err(Error::OperationOnInvalidCoordinate);
+    }
+    let d_lat = (other.latitude - self.latitude).to_radians();
+    let d_lon = (other.longitude - self.longitude).to_radians();
+    let haversine_d_lat = (d_lat / 2.0).sin().powi(2);
+    let haversine_d_lon = (d_lon / 2.0).sin().powi(2);
+    let y = haversine_d_lat + self.latitude.to_radians().cos()
+      * other.latitude.to_radians().cos()
+      * haversine_d_lon;
+    let x = 2.0 * y.sqrt().asin();
+    Ok(consts::EARTH_MEAN_RADIUS * x as f32)
+  }
+
+  pub fn at_distance_and_azimuth(&self, distance: f32, azimuth: f32, up: f32)
+    -> Result<GeoCoordinate, Error>
+  {
+    if !self.valid() {
+      return Err(Error::OperationOnInvalidCoordinate);
+    }
+    let ratio = distance as f64 / consts::EARTH_MEAN_RADIUS as f64;
+    let result_lat_rad = (self.latitude.to_radians().sin() * ratio.cos()
+      + self.latitude.to_radians().cos() * ratio.sin()
+      * (azimuth as f64).to_radians().cos()).asin();
+    let result_lon_rad = self.longitude.to_radians()
+      + ((azimuth as f64).to_radians().sin() * ratio.sin() * self.latitude.to_radians().cos())
+      .atan2(ratio.cos() - self.latitude.to_radians().sin() * result_lat_rad.sin());
+    return Ok(GeoCoordinate::new(result_lat_rad.to_degrees(),
+                                 clip_longitude(result_lon_rad.to_degrees()),
+                                 self.altitude + up as f64));
   }
 }
