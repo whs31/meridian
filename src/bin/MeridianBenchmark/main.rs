@@ -3,6 +3,7 @@ use log::info;
 
 use meridian::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, ShapeMode};
 use meridian::init_logger;
+use meridian::positioning::geocoordinate::GeoCoordinate;
 use meridian::positioning::georectangle::GeoRectangle;
 
 fn main()
@@ -16,13 +17,16 @@ fn main()
     .into_os_string()
     .into_string()
     .unwrap();
-  let rectangle = GeoRectangle::from_tuples((60.0, 30.0),
-                                            (58.0, 32.0));
+  let rectangle = GeoRectangle::from_center_and_size(
+    GeoCoordinate::new_2d(55.75431502026738, 37.61903345376926),
+    1000000.0,
+    1000000.0
+  ).expect("Failed to create GeoRectangle");
   let _ = convert_georectangle(path.as_str(),
                                rectangle,
                                4096,
                                (0.0, 200.0),
                                ImageFormat::PNG,
-                               ShapeMode::AsProvided);
+                               ShapeMode::Square);
   info!("Done!");
 }

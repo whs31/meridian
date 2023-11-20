@@ -7,7 +7,6 @@ use log::{debug, error, info};
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
 use crate::positioning::georectangle::{ExtendMode, GeoRectangle};
-use crate::tile_storage::tile_signature::TileSignature;
 
 #[derive(Debug)]
 pub enum ImageFormat
