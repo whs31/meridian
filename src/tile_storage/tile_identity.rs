@@ -1,5 +1,5 @@
 use geotiff_rs::{GeoTiff};
-use log::{debug, info, warn};
+use log::{debug, warn};
 use crate::errors::Error;
 use chrono::Utc;
 
@@ -25,7 +25,7 @@ impl TileIdentity
     };
     let end = Utc::now().time();
     debug!("Decoding status: OK");
-    info!("Decoding tiff file from {} took {}ms", file_path, (end - start).num_milliseconds());
+    debug!("Decoding tiff file from {} took {}ms", file_path, (end - start).num_milliseconds());
 
     let im_size = match imagesize::size(&file_path) {
       Ok(x) => { x },

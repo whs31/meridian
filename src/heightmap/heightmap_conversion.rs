@@ -1,4 +1,5 @@
 use std::fs;
+use std::ops::{Div, Mul};
 use std::path::MAIN_SEPARATOR;
 use image::{GrayImage, ImageBuffer, Luma};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -10,7 +11,20 @@ use crate::positioning::georectangle::{ExtendMode, GeoRectangle};
 #[derive(Debug)]
 pub enum ImageFormat
 {
-  PNG
+  PNG,
+  RAW
+}
+
+impl ImageFormat
+{
+  pub fn extension(&self) -> &str
+  {
+    match self
+    {
+      ImageFormat::PNG => "png",
+      ImageFormat::RAW => "raw"
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -42,16 +56,17 @@ impl Resolution
 }
 
 pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
-                            target_size: Resolution, bounds: (f32, f32), format: ImageFormat,
-                            shape_mode: ShapeMode)
+                            target_size: Resolution, bounds: (f32, f32),
+                            format: ImageFormat, shape_mode: ShapeMode)
   -> Result<(), Error>
 {
   let size = target_size.value();
+  let path = format!("{target_path}.{}", format.extension());
   info!("Converting georectangle {}", &georectangle);
-  info!("\t\tTarget size:\t\t {}x{} px", size, size);
-  info!("\t\tFormat:\t\t\t\t\t {:?}", format);
-  info!("\t\tBounds:\t\t\t\t\t {:?}", bounds);
-  info!("\t\tTarget path:\t\t {}", target_path);
+  info!("Target size:\t\t {}x{} px", size, size);
+  info!("Format:\t\t {:?} (.{}])", format, format.extension());
+  info!("Bounds:\t\t {:?}", bounds);
+  info!("Target path:\t\t {}", path);
 
   debug!("Georectangle size: {:?}", georectangle.size());
   let square = match shape_mode {
@@ -71,6 +86,7 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
     .progress_chars("█░░"));
   pb1.set_message(format!("Finding min/max"));
   let mut min_max = (i16::MAX, i16::MIN);
+  let mut table: Vec<Vec<i16>> = vec![vec![0; size]; size];
   for i in 0..size {
     pb1.set_position(i as u64);
     let base_coordinate = square.top_left
@@ -83,9 +99,10 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
         .elevation()?;
       min_max.0 = elevation.min(min_max.0 as f32) as i16;
       min_max.1 = elevation.max(min_max.1 as f32) as i16;
+      table[i][j] = elevation as i16;
     }
   }
-  pb1.finish_with_message("Min/max found");
+  pb1.finish_with_message(format!("Min/max found: {:?}", min_max));
   debug!("Min/max: {:?}", min_max);
 
   let mut image: GrayImage = ImageBuffer::new(size as u32,
@@ -99,28 +116,37 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
     .progress_chars("█░░"));
   pb.set_message(format!("Converting to {}x{} px...", size, size));
 
-  for i in 0..size {
-    pb.set_position(i as u64);
-    let base_coordinate = square.top_left
-      .at_distance_and_azimuth(i as f32 * square.height_meters()? / size as f32,
-                               180.0, 0.0)?;
-    for j in 0..size {
-      let elevation = (base_coordinate
-        .at_distance_and_azimuth(j as f32 * square.width_meters()? / size as f32,
-                                  90.0, 0.0)?
-        .elevation()? / min_max.1 as f32 * u8::MAX as f32)
-        .clamp(u8::MIN as f32, u8::MAX as f32);
-      image.put_pixel(j as u32, i as u32, Luma([elevation as u8]));
-    }
-  }
-  pb.finish_with_message("Done!");
+  // sanity warning!
+  table
+    .iter()
+    .enumerate()
+    .for_each(|(i, row)| {
+      pb.set_position(i as u64);
+      let new_row: Vec<i16> = row
+        .iter()
+        .map(|&pixel| {
+          let elevation = (pixel as f32 - min_max.0 as f32)
+            .div(min_max.1 as f32 - min_max.0 as f32)
+            .mul(u8::MAX as f32)
+            .clamp(u8::MIN as f32, u8::MAX as f32) as i16;
+          elevation
+      }).collect();
+    new_row
+      .iter()
+      .enumerate()
+      .for_each(|(j, &elevation)| {
+        image.put_pixel(j as u32, i as u32, Luma([elevation as u8]));
+      });
+  });
+
+  pb.finish_with_message(" Conversion done!");
   debug!("Making missing folders to target {target_path}...");
-  fs::create_dir_all(target_path[..target_path.rfind(MAIN_SEPARATOR).unwrap()].to_string())
+  fs::create_dir_all(path[..path.rfind(MAIN_SEPARATOR).unwrap()].to_string())
     .unwrap();
-  debug!("Saving conversion result to {}...", target_path);
-  match image.save(target_path) {
+  debug!("Saving conversion result to {}...", &path);
+  match image.save(&path) {
     Ok(_) => {
-      info!("Image saved to {}", target_path);
+      info!("Image saved to {}", &path);
       Ok(())
     },
     Err(e) => {
@@ -144,7 +170,7 @@ mod tests
     let path = env::current_dir()
       .unwrap()
       .join("test-result")
-      .join("test-convert_georectangle.png")
+      .join("test-convert_georectangle")
       .into_os_string()
       .into_string()
       .unwrap();

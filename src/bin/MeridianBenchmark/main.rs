@@ -13,7 +13,7 @@ fn main()
   let path = env::current_dir()
     .unwrap()
     .join("test-result")
-    .join("test-convert_georectangle.png")
+    .join("test-convert")
     .into_os_string()
     .into_string()
     .unwrap();
