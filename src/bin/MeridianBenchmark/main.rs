@@ -26,7 +26,7 @@ fn main()
                                rectangle,
                                Resolution::Low,
                                (0.0, 200.0),
-                               ImageFormat::PNG,
+                               ImageFormat::RAW,
                                ShapeMode::Square);
   info!("Done!");
 }

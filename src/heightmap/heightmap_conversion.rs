@@ -25,6 +25,15 @@ impl ImageFormat
       ImageFormat::RAW => "raw"
     }
   }
+
+  pub fn is_8bit(&self) -> bool
+  {
+    match self
+    {
+      ImageFormat::PNG => true,
+      ImageFormat::RAW => false
+    }
+  }
 }
 
 #[derive(Debug)]
@@ -105,8 +114,9 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   pb1.finish_with_message(format!("Min/max found: {:?}", min_max));
   debug!("Min/max: {:?}", min_max);
 
-  let mut image: GrayImage = ImageBuffer::new(size as u32,
-                                              size as u32);
+  let mut image8: GrayImage = ImageBuffer::new(size as u32, size as u32);
+  let mut image16: ImageBuffer<Luma<i16>, Vec<i16>> = ImageBuffer::new(
+    size as u32, size as u32);
   debug!("Converting...");
   let pb = ProgressBar::new(size as u64);
   pb.set_style(ProgressStyle::with_template(
@@ -115,6 +125,11 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
     .unwrap()
     .progress_chars("█░░"));
   pb.set_message(format!("Converting to {}x{} px...", size, size));
+
+  let clamp = match format {
+    ImageFormat::PNG => u8::MAX as f32,
+    ImageFormat::RAW => i16::MAX as f32
+  };
 
   // sanity warning!
   table
@@ -128,23 +143,39 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
           let elevation = (pixel as f32 - min_max.0 as f32)
             .div(min_max.1 as f32 - min_max.0 as f32)
             .mul(u8::MAX as f32)
-            .clamp(u8::MIN as f32, u8::MAX as f32) as i16;
+            .clamp(0.0, clamp) as i16;
           elevation
       }).collect();
     new_row
       .iter()
       .enumerate()
       .for_each(|(j, &elevation)| {
-        image.put_pixel(j as u32, i as u32, Luma([elevation as u8]));
+        if format.is_8bit() {
+          image8.put_pixel(j as u32, i as u32, Luma([elevation as u8]));
+        }
+        else {
+          image16.put_pixel(j as u32, i as u32, Luma::<i16>([elevation]));
+        }
       });
   });
 
   pb.finish_with_message(" Conversion done!");
   debug!("Making missing folders to target {target_path}...");
-  fs::create_dir_all(path[..path.rfind(MAIN_SEPARATOR).unwrap()].to_string())
+
+  fs::create_dir_all(path[..path.rfind(MAIN_SEPARATOR).unwrap()]
+    .to_string())
     .unwrap();
   debug!("Saving conversion result to {}...", &path);
-  match image.save(&path) {
+  return match format.is_8bit() {
+    true => save_image(image8, &path),
+    false => save_image(image16, &path)
+  }
+}
+
+fn save_image<T: image::Primitive>(image: ImageBuffer<Luma<T>, Vec<T>>, path: &str)
+  -> Result<(), Error>
+{
+  match image.save(path) {
     Ok(_) => {
       info!("Image saved to {}", &path);
       Ok(())
