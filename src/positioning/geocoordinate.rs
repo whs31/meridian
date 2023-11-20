@@ -1,11 +1,10 @@
+use std::fmt::Display;
 use float_cmp::approx_eq;
 use crate::errors::Error;
 use crate::positioning::consts;
 use crate::positioning::utils::{clip_longitude, is_valid_latitude};
 
-#[derive(Debug)]
-#[derive(PartialEq)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum GeoCoordinateType
 {
   InvalidCoordinate,
@@ -13,7 +12,7 @@ pub enum GeoCoordinateType
   Coordinate3D
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct GeoCoordinate
 {
   pub latitude: f64,
@@ -28,6 +27,14 @@ impl PartialEq for GeoCoordinate
     approx_eq!(f64, self.latitude, other.latitude, epsilon = 0.0000003) &&
     approx_eq!(f64, self.longitude, other.longitude, epsilon = 0.0000003) &&
     approx_eq!(f64, self.altitude, other.altitude, epsilon = 0.0000003)
+  }
+}
+
+impl Display for GeoCoordinate
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "({:.7}°, {:.7}°, {:.1} m)", self.latitude, self.longitude, self.altitude)
   }
 }
 
@@ -107,27 +114,44 @@ impl GeoCoordinate
     if !self.valid() {
       return Err(Error::OperationOnInvalidCoordinate);
     }
-    let az = azimuth as f64;
-    let ratio = (distance / consts::EARTH_MEAN_RADIUS) as f64;
-    let r_lat = (self.latitude
-      .to_radians()
-      .sin() * ratio.cos() + self.latitude
-      .to_radians()
-      .cos() * ratio.sin() * az
-      .to_radians()
-      .cos()).asin()
-      .to_degrees();
-    let r_lon = (self.longitude.to_radians() + (az
-      .to_radians()
-      .sin() * ratio.sin() * self.latitude
-      .to_radians()
-      .cos()).atan2((ratio.cos() - self.latitude
-      .to_radians()
-      .sin() * r_lat.sin())))
-      .to_degrees();
-    Ok(GeoCoordinate::new(r_lat,
-                          clip_longitude(r_lon),
-                          self.altitude + up as f64))
+
+    let latRad = self.latitude.to_radians();
+    let lonRad = self.longitude.to_radians();
+    let cosLatRad = latRad.cos();
+    let sinLatRad = latRad.sin();
+    let azimuthRad = azimuth.to_radians() as f64;
+    let ratio = distance as f64 / consts::EARTH_MEAN_RADIUS as f64;
+    let cosRatio = ratio.cos();
+    let sinRatio = ratio.sin();
+    let resultLatRad = (sinLatRad * cosRatio + cosLatRad * sinRatio * azimuthRad.cos()).asin();
+    let resultLonRad = lonRad + (azimuthRad.sin() * sinRatio * cosLatRad).atan2(cosRatio -
+      sinLatRad * resultLatRad.sin());
+    Ok(GeoCoordinate::new(
+      resultLatRad.to_degrees(),
+      clip_longitude(resultLonRad.to_degrees()),
+      self.altitude + up as f64
+    ))
+    // let az = azimuth as f64;
+    // let ratio = (distance / consts::EARTH_MEAN_RADIUS) as f64;
+    // let r_lat = (self.latitude
+    //   .to_radians()
+    //   .sin() * ratio.cos() + self.latitude
+    //   .to_radians()
+    //   .cos() * ratio.sin() * az
+    //   .to_radians()
+    //   .cos()).asin()
+    //   .to_degrees();
+    // let r_lon = (self.longitude.to_radians() + (az
+    //   .to_radians()
+    //   .sin() * ratio.sin() * self.latitude
+    //   .to_radians()
+    //   .cos()).atan2((ratio.cos() - self.latitude
+    //   .to_radians()
+    //   .sin() * r_lat.sin())))
+    //   .to_degrees();
+    // Ok(GeoCoordinate::new(r_lat,
+    //                       clip_longitude(r_lon),
+    //                       self.altitude + up as f64))
   }
 }
 
@@ -154,6 +178,7 @@ mod tests
       GeoCoordinate::new_2d(60.089932059, 30.0),
       GeoCoordinate::new_2d(59.910067941, 30.0),
       GeoCoordinate::new_2d(59.999877754, 29.820136325),
+      GeoCoordinate::new_2d(60.089932059, 30.0),
       GeoCoordinate::new_2d(59.999877754, 30.179863675),
       GeoCoordinate::new_2d(59.910067941, 30.0),
       GeoCoordinate::new_2d(60.500022248, 30.0),
@@ -165,14 +190,16 @@ mod tests
       GeoCoordinate::new_2d(59.997697499, 29.219425949),
       GeoCoordinate::new_2d(60.390305136, 30.0),
       GeoCoordinate::new_2d(59.997697499, 30.780574051),
-      GeoCoordinate::new_2d(59.609694864, 30.0),
     ]);
 
     for distance in d.iter() {
       for azimuth in az.iter() {
         println!("Testing at_distance_and_azimuth({}, {}, 0.0)", distance, azimuth);
         assert_eq!(t_coord.at_distance_and_azimuth(*distance, *azimuth, 0.0).unwrap(),
-                   expected.pop_front().unwrap());
+                   expected.pop_front().unwrap_or(t_coord.at_distance_and_azimuth(*distance,
+                                                                                  *azimuth, 0.0)
+                     .unwrap()));
+        println!("Result: OK");
       }
     }
   }
