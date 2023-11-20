@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use float_cmp::approx_eq;
+use crate::elevation::elevation::{Elevation, elevation_at_coordinate};
 use crate::errors::Error;
 use crate::positioning::consts;
 use crate::positioning::utils::{clip_longitude, is_valid_latitude};
@@ -38,6 +39,14 @@ impl Display for GeoCoordinate
   }
 }
 
+impl Elevation for GeoCoordinate
+{
+  fn elevation(&self) -> Result<f32, Error>
+  {
+    elevation_at_coordinate(self)
+  }
+}
+
 impl GeoCoordinate
 {
   pub fn new(latitude: f64, longitude: f64, altitude: f64) -> GeoCoordinate
@@ -63,9 +72,10 @@ impl GeoCoordinate
   pub fn coordinate_type(&self) -> GeoCoordinateType
   {
     if is_valid_latitude(self.latitude) && is_valid_latitude(self.longitude) {
-      return match self.altitude {
-        0.0 => GeoCoordinateType::Coordinate2D,
-        _ => GeoCoordinateType::Coordinate3D
+      return if approx_eq!(f64, self.altitude, 0.0) {
+        GeoCoordinateType::Coordinate2D
+      } else {
+        GeoCoordinateType::Coordinate3D
       }
     }
     GeoCoordinateType::InvalidCoordinate

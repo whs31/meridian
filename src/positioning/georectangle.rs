@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use crate::errors::Error;
 use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::positioning::utils::clip_latitude;
@@ -14,6 +15,14 @@ pub struct GeoRectangle
 {
   pub top_left: GeoCoordinate,
   pub bottom_right: GeoCoordinate
+}
+
+impl Display for GeoRectangle
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "[{}, {}]", self.top_left, self.bottom_right)
+  }
 }
 
 impl GeoRectangle

@@ -1,12 +1,12 @@
-use crate::elevation_at;
-use crate::errors::Error;
-use crate::positioning::geocoordinate::GeoCoordinate;
-
-pub struct ElevationPoint
-{
-  pub distance: f32,
-  pub elevation: f32
-}
+// use crate::elevation_at;
+// use crate::errors::Error;
+// use crate::positioning::geocoordinate::GeoCoordinate;
+//
+// pub struct ElevationPoint
+// {
+//   pub distance: f32,
+//   pub elevation: f32
+// }
 
 // pub fn build_profile(path: Vec<GeoCoordinate>, discrete: u8) -> Result<Vec<ElevationPoint>, Error>
 // {

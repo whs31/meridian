@@ -24,7 +24,7 @@ pub fn init_logger() -> bool
 #[cfg(test)]
 mod tests
 {
-  use crate::{elevation_at, init_logger};
+  use crate::{elevation_at};
 
   #[test]
   fn test_elevation_at()

@@ -5,6 +5,14 @@ use crate::tile_storage::tile_signature::TileSignature;
 use crate::tile_storage::tile_storage::STORAGE;
 use crate::utils::validate_coordinate;
 
+pub trait Elevation {
+  fn elevation(&self) -> Result<f32, Error>;
+}
+
+pub fn elevation_at_coordinate(coordinate: &GeoCoordinate) -> Result<f32, Error>
+{
+  elevation_at((coordinate.latitude, coordinate.longitude))
+}
 pub fn elevation_at(coordinate: (f64, f64)) -> Result<f32, Error>
 {
   let mut storage = STORAGE
