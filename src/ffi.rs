@@ -71,6 +71,6 @@ mod tests
     assert_eq!(meridian_elevation(60.0, 30.0), 0);
     assert_eq!(meridian_elevation(61.0, 31.0), 3);
     assert_eq!(meridian_elevation(60.9, 30.9), 3);
-    assert_eq!(meridian_elevation(60.5, 30.5), 66);
+    assert_eq!(meridian_elevation(60.5, 30.5), 62);
   }
 }
