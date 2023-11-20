@@ -16,8 +16,8 @@ fn main()
     .into_os_string()
     .into_string()
     .unwrap();
-  let rectangle = GeoRectangle::from_tuples((47.331179, 37.645298),
-                                            (46.451195, 39.292670));
+  let rectangle = GeoRectangle::from_tuples((60.548257, 27.814114),
+                                            (56.955401, 38.238276));
   let _ = convert_georectangle(path.as_str(),
                                rectangle,
                                2048,
