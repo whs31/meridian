@@ -12,5 +12,6 @@ pub enum Error
   EmptyPath,
   OperationOnInvalidCoordinate,
   ImageSaveFailure,
-  FileCreationFailure
+  FileCreationFailure,
+  WriteToFileFailure
 }

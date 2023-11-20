@@ -44,14 +44,9 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   debug!("Finding min/max...");
   let pb1 = ProgressBar::new(target_size as u64);
   pb1.set_style(ProgressStyle::with_template(
-    "{wide_msg} {spinner:.green} [{elapsed_precise}] [{bar:40.red/orange}] {human_pos}/{human_len}\
-    ({percent})",)
+    "{wide_msg} {spinner:.green} [{bar:20.red/orange}] \
+    {human_pos:10}/ {human_len:10} ({percent:3}%)",)
     .unwrap()
-    .with_key("eta", |state: &ProgressState, w: &mut dyn Write|
-      write!(w, "{:.1}s", state
-        .eta()
-        .as_secs_f64())
-        .unwrap())
     .progress_chars("█░░"));
   pb1.set_message(format!("Finding min/max"));
   let mut min_max = (i16::MAX, i16::MIN);
@@ -76,13 +71,9 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   debug!("Converting...");
   let pb = ProgressBar::new(target_size as u64);
   pb.set_style(ProgressStyle::with_template(
-    "{wide_msg} {spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {human_pos}/{human_len}({percent})",)
+    "{wide_msg} {spinner:.green} [{bar:20.cyan/blue}] \
+    {human_pos:10}/ {human_len:10} ({percent:3}%)",)
     .unwrap()
-    .with_key("eta", |state: &ProgressState, w: &mut dyn Write|
-      write!(w, "{:.1}s", state
-        .eta()
-        .as_secs_f64())
-        .unwrap())
     .progress_chars("█░░"));
   pb.set_message(format!("Converting to {}x{} px...", target_size, target_size));
   for i in 0..target_size {

@@ -1,3 +1,4 @@
+use futures_util::stream::StreamExt;
 use std::env::current_dir;
 use std::fs;
 use std::io::{Write};
@@ -6,6 +7,7 @@ use std::sync::Mutex;
 use log::{debug, error, info, warn};
 use once_cell::sync::Lazy;
 use chrono::Utc;
+use indicatif::{ProgressBar, ProgressStyle};
 use crate::config::CONFIG;
 use crate::errors::Error;
 use crate::tile_storage::tile_identity::TileIdentity;
@@ -62,6 +64,7 @@ impl TileStorage
       return self.get(signature);
     }
     info!("Tile {:?} is not available, downloading...", signature);
+
     return match self.download_tile(&signature) {
       Ok(_) => { self.get(signature) },
       Err(e) => {
@@ -72,19 +75,32 @@ impl TileStorage
     };
   }
 
-  fn download_tile(&mut self, signature: &TileSignature) -> Result<(), Error>
+  #[tokio::main]
+  async fn download_tile(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
     let start = Utc::now().time();
+
     let target = self.get_absolute_path(signature);
     let source = self.get_url(signature);
     debug!("Downloading file {} from {}", target, source);
-    let response = match reqwest::blocking::get(&source) {
-      Ok(x) => { x }
+    let response = match reqwest::get(&source).await {
+      Ok(x) => x,
       Err(_) => { return Err(Error::NetworkFailure) }
     };
+    let total = response
+      .content_length()
+      .unwrap_or(1);
+    let pb = ProgressBar::new(total);
+    pb.set_style(ProgressStyle::with_template(
+      "{wide_msg} {spinner:.green} [{bar:20.yellow/white}] \
+      {bytes:10}/ {total_bytes:10} ({percent:3}%)",)
+      .unwrap()
+      .progress_chars("█░░"));
+    pb.set_message(format!("Downloading {:?} from {}", signature, source));
 
     debug!("Checking if response is successful...");
     if !response.status().is_success() {
+      warn!("Response status: ERROR");
       return Err(Error::NetworkFailure);
     }
     debug!("Response status: OK");
@@ -96,24 +112,36 @@ impl TileStorage
     };
     debug!("File status: OK");
 
-    return match file.write_all(&response.bytes().unwrap()) {
-      Ok(_) => {
-        debug!("File successfully downloaded to {}", target);
-        debug!("Checking if signature {:?} is cached...", signature);
-        if self.is_cached(signature.clone()) {
-          debug!("Tile {:?} is cached, loading...", signature);
-          self.insert(signature)?;
+    let mut downloaded: u64 = 0;
+    let mut stream = response.bytes_stream();
+
+    while let Some(item) = stream.next().await {
+      let chunk = item.unwrap();
+      match file.write_all(&chunk).or(Err(Error::WriteToFileFailure)) {
+        Ok(_) => {},
+        Err(_) => {
+          warn!("Failed to download or emplace file in cache at: {}, from: {}", target, source);
+          return Err(Error::WriteToFileFailure);
         }
-        let end = Utc::now().time();
-        let duration = (end - start).num_milliseconds();
-        info!("Tile {:?} downloaded and cached in {}ms", signature, duration);
-        Ok(())
-      },
-      Err(_) => {
-        warn!("Failed to download or emplace file in cache at: {}, from: {}", target, source);
-        Err(Error::NetworkFailure)
       }
+      let new = (downloaded + chunk.len() as u64).min(total);
+      downloaded = new;
+      pb.set_position(new);
     }
+    pb.finish_with_message(format!("Downloaded {:?} to {}", signature, target));
+    println!();
+
+    debug!("File successfully downloaded to {}", target);
+    debug!("Checking if signature {:?} is cached...", signature);
+    if self.is_cached(signature.clone()) {
+      debug!("Tile {:?} is cached, loading...", signature);
+      self.insert(signature)?;
+    }
+
+    let end = Utc::now().time();
+    let duration = (end - start).num_milliseconds();
+    info!("Tile {:?} downloaded and cached in {}ms", signature, duration);
+    Ok(())
   }
 
   fn insert(&mut self, signature: &TileSignature) -> Result<(), Error>
