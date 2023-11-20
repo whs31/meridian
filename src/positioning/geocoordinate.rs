@@ -115,43 +115,30 @@ impl GeoCoordinate
       return Err(Error::OperationOnInvalidCoordinate);
     }
 
-    let latRad = self.latitude.to_radians();
-    let lonRad = self.longitude.to_radians();
-    let cosLatRad = latRad.cos();
-    let sinLatRad = latRad.sin();
-    let azimuthRad = azimuth.to_radians() as f64;
     let ratio = distance as f64 / consts::EARTH_MEAN_RADIUS as f64;
-    let cosRatio = ratio.cos();
-    let sinRatio = ratio.sin();
-    let resultLatRad = (sinLatRad * cosRatio + cosLatRad * sinRatio * azimuthRad.cos()).asin();
-    let resultLonRad = lonRad + (azimuthRad.sin() * sinRatio * cosLatRad).atan2(cosRatio -
-      sinLatRad * resultLatRad.sin());
+    let lat = (self.latitude
+      .to_radians()
+      .sin() * ratio.cos() + self.latitude
+      .to_radians()
+      .cos() * ratio.sin() * (azimuth as f64)
+      .to_radians()
+      .cos())
+      .asin();
     Ok(GeoCoordinate::new(
-      resultLatRad.to_degrees(),
-      clip_longitude(resultLonRad.to_degrees()),
+      lat.to_degrees(),
+      clip_longitude((self.longitude
+        .to_radians() + ((azimuth as f64)
+        .to_radians()
+        .sin() *
+        ratio.sin() * self.latitude
+        .to_radians()
+        .cos())
+        .atan2(ratio.cos() - self.latitude
+          .to_radians()
+          .sin() * lat.sin()))
+        .to_degrees()),
       self.altitude + up as f64
     ))
-    // let az = azimuth as f64;
-    // let ratio = (distance / consts::EARTH_MEAN_RADIUS) as f64;
-    // let r_lat = (self.latitude
-    //   .to_radians()
-    //   .sin() * ratio.cos() + self.latitude
-    //   .to_radians()
-    //   .cos() * ratio.sin() * az
-    //   .to_radians()
-    //   .cos()).asin()
-    //   .to_degrees();
-    // let r_lon = (self.longitude.to_radians() + (az
-    //   .to_radians()
-    //   .sin() * ratio.sin() * self.latitude
-    //   .to_radians()
-    //   .cos()).atan2((ratio.cos() - self.latitude
-    //   .to_radians()
-    //   .sin() * r_lat.sin())))
-    //   .to_degrees();
-    // Ok(GeoCoordinate::new(r_lat,
-    //                       clip_longitude(r_lon),
-    //                       self.altitude + up as f64))
   }
 }
 
