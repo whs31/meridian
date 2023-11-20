@@ -7,6 +7,7 @@ use log::{debug, error, info};
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
 use crate::positioning::georectangle::{ExtendMode, GeoRectangle};
+use crate::tile_storage::tile_signature::TileSignature;
 
 #[derive(Debug)]
 pub enum ImageFormat
@@ -14,8 +15,16 @@ pub enum ImageFormat
   PNG
 }
 
+#[derive(Debug)]
+pub enum ShapeMode
+{
+  Square,
+  AsProvided
+}
+
 pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
-                            target_size: usize, bounds: (f32, f32), format: ImageFormat)
+                            target_size: usize, bounds: (f32, f32), format: ImageFormat,
+                            shape_mode: ShapeMode)
   -> Result<(), Error>
 {
   info!("Converting georectangle {}", &georectangle);
@@ -25,7 +34,10 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   info!("\t\tTarget path:\t\t {}", target_path);
 
   debug!("Georectangle size: {:?}", georectangle.size());
-  let square = georectangle.to_square(ExtendMode::Extend)?;
+  let square = match shape_mode {
+    ShapeMode::Square => georectangle.to_square(ExtendMode::Extend)?,
+    ShapeMode::AsProvided => georectangle
+  };
   debug!("New georectangle: {}", square);
   debug!("New georectangle size: {:?}", square.size());
   debug!("Centers: old: {}, new: {}", georectangle.center()?, square.center()?);
@@ -85,7 +97,7 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
                                   90.0, 0.0)?
         .elevation()? / min_max.1 as f32 * u8::MAX as f32)
         .clamp(u8::MIN as f32, u8::MAX as f32);
-      image.put_pixel(i as u32, j as u32, Luma([elevation as u8]));
+      image.put_pixel(j as u32, i as u32, Luma([elevation as u8]));
     }
   }
   pb.finish_with_message("Done!");
@@ -128,6 +140,7 @@ mod tests
                                  rectangle,
                                  2048,
                                  (0.0, 200.0),
-                                 ImageFormat::PNG);
+                                 ImageFormat::PNG,
+                                 ShapeMode::Square);
   }
 }

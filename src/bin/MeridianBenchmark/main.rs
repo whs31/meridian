@@ -1,7 +1,7 @@
 use std::env;
 use log::info;
 
-use meridian::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat};
+use meridian::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, ShapeMode};
 use meridian::init_logger;
 use meridian::positioning::georectangle::GeoRectangle;
 
@@ -16,12 +16,13 @@ fn main()
     .into_os_string()
     .into_string()
     .unwrap();
-  let rectangle = GeoRectangle::from_tuples((60.548257, 27.814114),
-                                            (56.955401, 38.238276));
+  let rectangle = GeoRectangle::from_tuples((60.0, 30.0),
+                                            (58.0, 32.0));
   let _ = convert_georectangle(path.as_str(),
                                rectangle,
-                               2048,
+                               4096,
                                (0.0, 200.0),
-                               ImageFormat::PNG);
+                               ImageFormat::PNG,
+                               ShapeMode::AsProvided);
   info!("Done!");
 }
