@@ -1,8 +1,7 @@
 use std::fs;
-use std::fmt::Write;
 use std::path::MAIN_SEPARATOR;
 use image::{GrayImage, ImageBuffer, Luma};
-use indicatif::{ProgressBar, ProgressState, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error, info};
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
