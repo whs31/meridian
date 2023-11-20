@@ -10,5 +10,6 @@ pub enum Error
   InvalidCoordinate,
   ImageSizeError,
   EmptyPath,
-  OperationOnInvalidCoordinate
+  OperationOnInvalidCoordinate,
+  ImageSaveFailure
 }

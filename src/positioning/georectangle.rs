@@ -36,6 +36,15 @@ impl GeoRectangle
     }
   }
 
+  pub fn from_tuples(top_left: (f64, f64), bottom_right: (f64, f64)) -> GeoRectangle
+  {
+    GeoRectangle
+    {
+      top_left: GeoCoordinate::new(top_left.0, top_left.1, 0.0),
+      bottom_right: GeoCoordinate::new(bottom_right.0, bottom_right.1, 0.0)
+    }
+  }
+
   pub fn from_center_and_size(center: GeoCoordinate, width: f32, height: f32)
     -> Result<GeoRectangle, Error>
   {
