@@ -1,6 +1,6 @@
 use std::env::current_dir;
 use std::fs;
-use std::io::Write;
+use std::io::{Write};
 use std::path::MAIN_SEPARATOR;
 use std::sync::Mutex;
 use log::{debug, error, info, warn};
@@ -65,7 +65,8 @@ impl TileStorage
     return match self.download_tile(&signature) {
       Ok(_) => { self.get(signature) },
       Err(e) => {
-        error!("No such tile in remote url. Please check if the tile is available.");
+        error!("No such tile in remote url. Please check if the tile is available: {:?} [{:?}]",
+          signature, e);
         Err(e)
       }
     };
@@ -91,7 +92,7 @@ impl TileStorage
     fs::create_dir_all(target[..target.rfind(MAIN_SEPARATOR).unwrap()].to_string()).unwrap();
     let mut file = match fs::File::create(&target) {
       Ok(x) => { x }
-      Err(_) => { return Err(Error::NetworkFailure) }
+      Err(_) => { return Err(Error::FileCreationFailure) }
     };
     debug!("File status: OK");
 

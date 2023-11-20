@@ -1,4 +1,3 @@
-use log::debug;
 use crate::errors::Error;
 use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::tile_signature::TileSignature;

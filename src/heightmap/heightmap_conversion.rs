@@ -1,6 +1,8 @@
 use std::fs;
+use std::fmt::Write;
 use std::path::MAIN_SEPARATOR;
-use image::{ImageBuffer, Rgb, RgbImage};
+use image::{GrayImage, ImageBuffer, Luma, Rgb, RgbImage};
+use indicatif::{ProgressBar, ProgressState, ProgressStyle};
 use log::{debug, error, info};
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
@@ -28,24 +30,65 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   debug!("New georectangle size: {:?}", square.size());
   debug!("Centers: old: {}, new: {}", georectangle.center()?, square.center()?);
 
-  let mut image: RgbImage = ImageBuffer::new(target_size as u32, target_size as u32);
-  debug!("Converting...");
+  debug!("Finding min/max...");
+  let pb1 = ProgressBar::new(target_size as u64);
+  pb1.set_style(ProgressStyle::with_template(
+    "{wide_msg} {spinner:.green} [{elapsed_precise}] [{bar:40.red/orange}] {human_pos}/{human_len}\
+    ({percent})",)
+    .unwrap()
+    .with_key("eta", |state: &ProgressState, w: &mut dyn Write|
+      write!(w, "{:.1}s", state
+        .eta()
+        .as_secs_f64())
+        .unwrap())
+    .progress_chars("█░░"));
+  pb1.set_message(format!("Finding min/max"));
+  let mut min_max = (i16::MAX, i16::MIN);
   for i in 0..target_size {
+    pb1.set_position(i as u64);
     let base_coordinate = square.top_left
-      .at_distance_and_azimuth((i as f32 * square.height_meters()? / target_size as f32) as f32,
+      .at_distance_and_azimuth(i as f32 * square.height_meters()? / target_size as f32,
                                180.0, 0.0)?;
     for j in 0..target_size {
       let elevation = base_coordinate
-        .at_distance_and_azimuth((j as f32 * square.width_meters()? / target_size as f32) as f32,
-                                  90.0, 0.0)?
-        .elevation()?
-        .clamp(bounds.0, bounds.1)
-        .clamp(u8::MIN as f32, u8::MAX as f32);
-      let pixel = Rgb([elevation as u8, elevation as u8, elevation as u8]);
-      image.put_pixel(i as u32, j as u32, pixel);
+        .at_distance_and_azimuth(j as f32 * square.width_meters()? / target_size as f32,
+                                 90.0, 0.0)?
+        .elevation()?;
+      min_max.0 = elevation.min(min_max.0 as f32) as i16;
+      min_max.1 = elevation.max(min_max.1 as f32) as i16;
     }
   }
-  info!("Converted!");
+  pb1.finish_with_message("Min/max found");
+  debug!("Min/max: {:?}", min_max);
+
+  let mut image: GrayImage = ImageBuffer::new(target_size as u32, target_size as u32);
+  debug!("Converting...");
+  let pb = ProgressBar::new(target_size as u64);
+  pb.set_style(ProgressStyle::with_template(
+    "{wide_msg} {spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {human_pos}/{human_len}({percent})",)
+    .unwrap()
+    .with_key("eta", |state: &ProgressState, w: &mut dyn Write|
+      write!(w, "{:.1}s", state
+        .eta()
+        .as_secs_f64())
+        .unwrap())
+    .progress_chars("█░░"));
+  pb.set_message(format!("Converting to {}x{} px...", target_size, target_size));
+  for i in 0..target_size {
+    pb.set_position(i as u64);
+    let base_coordinate = square.top_left
+      .at_distance_and_azimuth(i as f32 * square.height_meters()? / target_size as f32,
+                               180.0, 0.0)?;
+    for j in 0..target_size {
+      let elevation = (base_coordinate
+        .at_distance_and_azimuth(j as f32 * square.width_meters()? / target_size as f32,
+                                  90.0, 0.0)?
+        .elevation()? / min_max.1 as f32 * u8::MAX as f32)
+        .clamp(u8::MIN as f32, u8::MAX as f32);
+      image.put_pixel(i as u32, j as u32, Luma([elevation as u8]));
+    }
+  }
+  pb.finish_with_message("Done!");
   debug!("Making missing folders to target {target_path}...");
   fs::create_dir_all(target_path[..target_path.rfind(MAIN_SEPARATOR).unwrap()].to_string())
     .unwrap();
