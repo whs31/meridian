@@ -21,13 +21,35 @@ pub enum ShapeMode
   AsProvided
 }
 
+#[derive(Debug)]
+pub enum Resolution
+{
+  Low,
+  Medium,
+  High
+}
+
+impl Resolution
+{
+  pub fn value(&self) -> usize
+  {
+    match self
+    {
+      Resolution::Low => 1024,
+      Resolution::Medium => 2048,
+      Resolution::High => 4096
+    }
+  }
+}
+
 pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
-                            target_size: usize, bounds: (f32, f32), format: ImageFormat,
+                            target_size: Resolution, bounds: (f32, f32), format: ImageFormat,
                             shape_mode: ShapeMode)
   -> Result<(), Error>
 {
+  let size = target_size.value();
   info!("Converting georectangle {}", &georectangle);
-  info!("\t\tTarget size:\t\t {}x{} px", target_size, target_size);
+  info!("\t\tTarget size:\t\t {}x{} px", size, size);
   info!("\t\tFormat:\t\t\t\t\t {:?}", format);
   info!("\t\tBounds:\t\t\t\t\t {:?}", bounds);
   info!("\t\tTarget path:\t\t {}", target_path);
@@ -42,7 +64,7 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   debug!("Centers: old: {}, new: {}", georectangle.center()?, square.center()?);
 
   debug!("Finding min/max...");
-  let pb1 = ProgressBar::new(target_size as u64);
+  let pb1 = ProgressBar::new(size as u64);
   pb1.set_style(ProgressStyle::with_template(
     "{wide_msg} {spinner:.green} [{bar:20.red/orange}] \
     {human_pos:10}/ {human_len:10} ({percent:3}%)",)
@@ -50,14 +72,14 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
     .progress_chars("█░░"));
   pb1.set_message(format!("Finding min/max"));
   let mut min_max = (i16::MAX, i16::MIN);
-  for i in 0..target_size {
+  for i in 0..size {
     pb1.set_position(i as u64);
     let base_coordinate = square.top_left
-      .at_distance_and_azimuth(i as f32 * square.height_meters()? / target_size as f32,
+      .at_distance_and_azimuth(i as f32 * square.height_meters()? / size as f32,
                                180.0, 0.0)?;
-    for j in 0..target_size {
+    for j in 0..size {
       let elevation = base_coordinate
-        .at_distance_and_azimuth(j as f32 * square.width_meters()? / target_size as f32,
+        .at_distance_and_azimuth(j as f32 * square.width_meters()? / size as f32,
                                  90.0, 0.0)?
         .elevation()?;
       min_max.0 = elevation.min(min_max.0 as f32) as i16;
@@ -67,23 +89,25 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   pb1.finish_with_message("Min/max found");
   debug!("Min/max: {:?}", min_max);
 
-  let mut image: GrayImage = ImageBuffer::new(target_size as u32, target_size as u32);
+  let mut image: GrayImage = ImageBuffer::new(size as u32,
+                                              size as u32);
   debug!("Converting...");
-  let pb = ProgressBar::new(target_size as u64);
+  let pb = ProgressBar::new(size as u64);
   pb.set_style(ProgressStyle::with_template(
     "{wide_msg} {spinner:.green} [{bar:20.cyan/blue}] \
     {human_pos:10}/ {human_len:10} ({percent:3}%)",)
     .unwrap()
     .progress_chars("█░░"));
-  pb.set_message(format!("Converting to {}x{} px...", target_size, target_size));
-  for i in 0..target_size {
+  pb.set_message(format!("Converting to {}x{} px...", size, size));
+
+  for i in 0..size {
     pb.set_position(i as u64);
     let base_coordinate = square.top_left
-      .at_distance_and_azimuth(i as f32 * square.height_meters()? / target_size as f32,
+      .at_distance_and_azimuth(i as f32 * square.height_meters()? / size as f32,
                                180.0, 0.0)?;
-    for j in 0..target_size {
+    for j in 0..size {
       let elevation = (base_coordinate
-        .at_distance_and_azimuth(j as f32 * square.width_meters()? / target_size as f32,
+        .at_distance_and_azimuth(j as f32 * square.width_meters()? / size as f32,
                                   90.0, 0.0)?
         .elevation()? / min_max.1 as f32 * u8::MAX as f32)
         .clamp(u8::MIN as f32, u8::MAX as f32);
@@ -128,7 +152,7 @@ mod tests
     let rectangle = GeoRectangle::from_tuples((61.0, 30.0), (60.0, 31.0));
     let _ = convert_georectangle(path.as_str(),
                                  rectangle,
-                                 2048,
+                                 Resolution::Low,
                                  (0.0, 200.0),
                                  ImageFormat::PNG,
                                  ShapeMode::Square);

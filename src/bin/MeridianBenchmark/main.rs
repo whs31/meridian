@@ -1,7 +1,7 @@
 use std::env;
 use log::info;
 
-use meridian::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, ShapeMode};
+use meridian::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, Resolution, ShapeMode};
 use meridian::init_logger;
 use meridian::positioning::geocoordinate::GeoCoordinate;
 use meridian::positioning::georectangle::GeoRectangle;
@@ -24,7 +24,7 @@ fn main()
   ).expect("Failed to create GeoRectangle");
   let _ = convert_georectangle(path.as_str(),
                                rectangle,
-                               4096,
+                               Resolution::Low,
                                (0.0, 200.0),
                                ImageFormat::PNG,
                                ShapeMode::Square);
