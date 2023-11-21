@@ -1,7 +1,7 @@
 use std::fs;
 use std::ops::{Div, Mul};
 use std::path::MAIN_SEPARATOR;
-use image::{EncodableLayout, GrayImage, ImageBuffer, Luma};
+use image::{GrayImage, ImageBuffer, Luma};
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{debug, error, info};
 use crate::elevation::elevation::Elevation;
@@ -78,7 +78,7 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   let path = format!("{target_path}.{}", format.extension());
   info!("Converting georectangle {}", &georectangle);
   info!("Target size:\t\t {}x{} px", size, size);
-  info!("Format:\t\t {:?} (.{}])", format, format.extension());
+  info!("Format:\t\t {:?} (.{})", format, format.extension());
   info!("Bounds:\t\t {:?}", bounds);
   info!("Target path:\t\t {}", path);
 

@@ -1,13 +1,10 @@
-use futures_util::stream::StreamExt;
-use std::fs;
-use std::io::{Write};
-use std::path::MAIN_SEPARATOR;
+use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
-use log::{debug, error, info, warn};
+use futures_util::future::err;
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
-use chrono::Utc;
-use indicatif::{ProgressBar, ProgressStyle};
 use crate::errors::Error;
+use crate::tile_storage::net_fetch::NetworkFetcher;
 use crate::tile_storage::tile_identity::TileIdentity;
 use crate::tile_storage::tile_signature::TileSignature;
 use crate::utils::StaticHeapObject;
@@ -18,7 +15,9 @@ pub static STORAGE: StaticHeapObject<TileStorage> = Lazy::new(
 
 pub struct TileStorage
 {
-  table: std::collections::HashMap<TileSignature, Box<TileIdentity>>
+  table: HashMap<TileSignature, Box<TileIdentity>>,
+  deque: VecDeque<TileSignature>,
+  network: NetworkFetcher
 }
 
 impl TileStorage
@@ -26,7 +25,9 @@ impl TileStorage
   pub fn new() -> Self
   {
     Self {
-      table: std::collections::HashMap::new()
+      table: std::collections::HashMap::new(),
+      deque: std::collections::VecDeque::new(),
+      network: NetworkFetcher::new()
     }
   }
 
@@ -52,6 +53,10 @@ impl TileStorage
 
   pub fn get_or_emplace(&mut self, signature: TileSignature) -> Result<&TileIdentity, Error>
   {
+    if self.network.is_unavailable(&signature) {
+      return Err(Error::NoSuchObjectInRemote(signature.clone()));
+    }
+
     if self.is_available(signature.clone()) {
       return self.get(signature);
     }
@@ -63,92 +68,54 @@ impl TileStorage
     }
     info!("Tile {:?} is not available, downloading...", signature);
 
-    return match self.download_tile(&signature) {
-      Ok(_) => { self.get(signature) },
+    return match self.network.download_tile(&signature) {
+      Ok(_) => {
+        if self.is_cached(signature.clone()) {
+          debug!("Tile {:?} is cached, loading...", &signature);
+          self.insert(&signature)?;
+        }
+        self.get(signature)
+      },
       Err(e) => {
-        error!("No such tile in remote url. Please check if the tile is available: {:?} [{:?}]",
-          signature, e);
-        Err(e)
-      }
-    };
-  }
-
-  #[tokio::main]
-  async fn download_tile(&mut self, signature: &TileSignature) -> Result<(), Error>
-  {
-    let start = Utc::now().time();
-
-    let target = signature.to_abs_path();
-    let source = signature.to_url();
-    debug!("Downloading file {} from {}", target, source);
-    let response = match reqwest::get(&source).await {
-      Ok(x) => x,
-      Err(e) => { return Err(Error::NetworkFailure(e)) }
-    };
-    let total = response
-      .content_length()
-      .unwrap_or(1);
-    let pb = ProgressBar::new(total);
-    pb.set_style(ProgressStyle::with_template(
-      "{wide_msg} {spinner:.green} [{bar:20.yellow/white}] \
-      {bytes:10}/ {total_bytes:10} ({percent:3}%)",)
-      .unwrap()
-      .progress_chars("█░░"));
-    pb.set_message(format!("Downloading {:?} from {}", signature, source));
-
-    debug!("Checking if response is successful...");
-    debug!("Response status: OK");
-    debug!("Making missing folders to target {target}...");
-    fs::create_dir_all(target[..target.rfind(MAIN_SEPARATOR).unwrap()].to_string()).unwrap();
-    let mut file = match fs::File::create(&target) {
-      Ok(x) => { x }
-      Err(e) => { return Err(Error::FileCreationFailure(e)) }
-    };
-    debug!("File status: OK");
-
-    let mut downloaded: u64 = 0;
-    let mut stream = response.bytes_stream();
-
-    while let Some(item) = stream.next().await {
-      let chunk = item.unwrap();
-      match file.write_all(&chunk) {
-        Ok(_) => {},
-        Err(_) => {
-          warn!("Failed to download or emplace file in cache at: {}, from: {}", target, source);
-          return Err(Error::WriteToFileFailure(target));
+        self.network.make_unavailable(&signature);
+        match e {
+          Error::NoSuchObjectInRemote(_) => Err(e),
+          _ => {
+            error!("{}", e);
+            Err(e)
+          }
         }
       }
-      let new = (downloaded + chunk.len() as u64).min(total);
-      downloaded = new;
-      pb.set_position(new);
-    }
-    pb.finish_with_message(format!("Downloaded {:?} to {}", signature, target));
-    println!();
-
-    debug!("File successfully downloaded to {}", target);
-    debug!("Checking if signature {:?} is cached...", signature);
-    if self.is_cached(signature.clone()) {
-      debug!("Tile {:?} is cached, loading...", signature);
-      self.insert(signature)?;
-    }
-
-    let end = Utc::now().time();
-    let duration = (end - start).num_milliseconds();
-    info!("Tile {:?} downloaded and cached in {}ms", signature, duration);
-    Ok(())
+    };
   }
 
   fn insert(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
-    self.table.insert(*signature, Box::new(match TileIdentity::new(
-      signature.to_abs_path()
-    ) {
-      Ok(x) => { x },
-      Err(e) => {
-        error!("Failed to decode tiff file from {}", &signature.to_abs_path());
-        return Err(e);
+    self.table.insert(*signature, Box::new(
+      match TileIdentity::new(signature.to_abs_path()) {
+        Ok(x) => { x },
+        Err(e) => return Err(e)
       }
-    }));
+    ));
     Ok(())
   }
+  fn filter(&mut self, signature: &TileSignature)
+  {
+    let pos = match self.deque.binary_search(signature) {
+      Ok(x) => { x }
+      Err(_) => {
+        self.deque.push_back(*signature);
+        self.deque.len() - 1
+      }
+    };
+    self.deque.swap(0, pos);
+    if self.deque.len() > 20 {
+      match self.deque.pop_back() {
+        None => {}
+        Some(sign) => { self.table.remove(&sign); }
+      }
+    }
+  }
 }
+
+

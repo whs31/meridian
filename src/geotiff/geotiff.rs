@@ -18,6 +18,9 @@ impl GeoTiff {
     let ifd = &self.tiff.ifds[0];
     let width = ifd.image_width().unwrap() as usize;
     let length = ifd.image_length().unwrap() as usize;
-    ifd.data[(length - 1 - lat) * width + lon]
+    ifd.data
+      .get((length - 1 - lat) * width + lon)
+      .cloned()
+      .unwrap_or(0)
   }
 }
