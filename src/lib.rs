@@ -1,6 +1,7 @@
 use log::warn;
 pub use crate::elevation::elevation::elevation_at;
 
+mod geotiff;
 mod tile_storage;
 pub mod errors;
 pub mod config;

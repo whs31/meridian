@@ -1,7 +1,7 @@
-use geotiff_rs::{GeoTiff};
 use log::{debug, warn};
 use crate::errors::Error;
 use chrono::Utc;
+use crate::geotiff::GeoTiff;
 
 pub struct TileIdentity
 {

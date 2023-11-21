@@ -1,4 +1,5 @@
 use thiserror::Error;
+use crate::geotiff::TiffParserError;
 use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::tile_signature::TileSignature;
 
@@ -22,7 +23,7 @@ pub enum Error
   ConfigMissingKey(String),
 
   #[error("Failed to read file: {0}")]
-  TiffError(geotiff_rs::TiffParserError),
+  TiffError(TiffParserError),
 
   #[error("Failed to read image size: {0}")]
   ImageSizeError(imagesize::ImageError),
