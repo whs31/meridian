@@ -17,9 +17,9 @@ fn main()
     .into_string()
     .unwrap();
   let rectangle = GeoRectangle::from_center_and_size(
-    GeoCoordinate::new_2d(0.0, 0.0),
-    30_000_000.0,
-    30_000_000.0
+    GeoCoordinate::new_2d(51.036046, 39.285539),
+    2_000_000.0,
+    2_000_000.0
   ).expect("Failed to create GeoRectangle");
   let _ = match convert_georectangle(path.as_str(),
                                rectangle,
