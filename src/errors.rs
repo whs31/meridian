@@ -37,6 +37,9 @@ pub enum Error
   #[error("Operation on invalid coordinate: {0}")]
   OperationOnInvalidCoordinate(GeoCoordinate),
 
+  #[error("Operation on invalid coordinate pair: {0}, {1}")]
+  OperationOnInvalidCoordinatePair(GeoCoordinate, GeoCoordinate),
+
   #[error("Failed to save image: {0}")]
   ImageSaveFailure(image::ImageError),
 

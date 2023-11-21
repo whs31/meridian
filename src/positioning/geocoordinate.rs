@@ -3,7 +3,7 @@ use float_cmp::approx_eq;
 use crate::elevation::elevation::{Elevation, elevation_at_coordinate};
 use crate::errors::Error;
 use crate::positioning::consts;
-use crate::positioning::utils::{clip_longitude, is_valid_latitude};
+use crate::positioning::utils::{clip_longitude, is_valid_latitude, is_valid_longitude};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum GeoCoordinateType
@@ -71,7 +71,7 @@ impl GeoCoordinate
 
   pub fn coordinate_type(&self) -> GeoCoordinateType
   {
-    if is_valid_latitude(self.latitude) && is_valid_latitude(self.longitude) {
+    if is_valid_latitude(self.latitude) && is_valid_longitude(self.longitude) {
       return if approx_eq!(f64, self.altitude, 0.0) {
         GeoCoordinateType::Coordinate2D
       } else {
@@ -89,7 +89,7 @@ impl GeoCoordinate
   pub fn azimuth_to(&self, other: &GeoCoordinate) -> Result<f32, Error>
   {
     if !self.valid() || !other.valid() {
-      return Err(Error::OperationOnInvalidCoordinate(self.clone()));
+      return Err(Error::OperationOnInvalidCoordinatePair(self.clone(), other.clone()));
     }
     let d_lon = (other.longitude - self.longitude).to_radians();
     let lat1_rad = self.latitude.to_radians();
@@ -105,7 +105,7 @@ impl GeoCoordinate
   pub fn distance_to(&self, other: &GeoCoordinate) -> Result<f32, Error>
   {
     if !self.valid() || !other.valid() {
-      return Err(Error::OperationOnInvalidCoordinate(self.clone()));
+      return Err(Error::OperationOnInvalidCoordinatePair(self.clone(), other.clone()));
     }
     let d_lat = (other.latitude - self.latitude).to_radians();
     let d_lon = (other.longitude - self.longitude).to_radians();
