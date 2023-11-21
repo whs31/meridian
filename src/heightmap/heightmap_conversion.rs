@@ -110,7 +110,8 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
       let elevation = base_coordinate
         .at_distance_and_azimuth(j as f32 * square.width_meters()? / size as f32,
                                  90.0, 0.0)?
-        .elevation()?;
+        .elevation()
+        .unwrap_or(0.0);
       min_max.0 = elevation.min(min_max.0 as f32) as i16;
       min_max.1 = elevation.max(min_max.1 as f32) as i16;
       table[i][j] = elevation as i16;
