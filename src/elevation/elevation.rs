@@ -28,7 +28,8 @@ pub fn elevation_at(coordinate: (f64, f64)) -> Result<f32, Error>
     requested_coordinate.distance_to(&GeoCoordinate::new(key.latitude as f64, coord.1, 0.0))?
   );
   let dn = (distance_2d.0 / (tile_size.1 as f32), distance_2d.1 / (tile_size.0 as f32));
-  let pixel_coords = ((dn.0 * image_size.0 as f32) as usize, (dn.1 * image_size.1 as f32) as usize);
+  let pixel_coords = ((dn.0 * image_size.0 as f32) as usize,
+                                      (dn.1 * image_size.1 as f32) as usize);
   let value = data.get_pixel(pixel_coords.0, pixel_coords.1);
 
   Ok(value as f32)

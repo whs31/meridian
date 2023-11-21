@@ -19,7 +19,6 @@ impl TileIdentity
     let data_raw = match GeoTiff::from_file(&file_path) {
       Ok(x) => { x },
       Err(e) => {
-        warn!("Failed to decode tiff file from {}", file_path);
         return Err(Error::TiffError(e));
       }
     };

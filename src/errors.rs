@@ -16,6 +16,12 @@ pub enum Error
   #[error("Network failure: {0}")]
   NetworkFailure(reqwest::Error),
 
+  #[error("Network status code fail: {0} for signature {1}")]
+  NetworkStatusCodeError(u16, TileSignature),
+
+  #[error("No such object in remote: {0}")]
+  NoSuchObjectInRemote(TileSignature),
+
   #[error("Invalid quarter directory specifier: {0}")]
   InvalidQuarterDirectorySpecifier(String),
 
