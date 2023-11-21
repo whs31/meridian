@@ -1,7 +1,7 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
 use futures_util::future::err;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use once_cell::sync::Lazy;
 use crate::errors::Error;
 use crate::tile_storage::net_fetch::NetworkFetcher;
@@ -25,8 +25,8 @@ impl TileStorage
   pub fn new() -> Self
   {
     Self {
-      table: std::collections::HashMap::new(),
-      deque: std::collections::VecDeque::new(),
+      table: HashMap::new(),
+      deque: VecDeque::new(),
       network: NetworkFetcher::new()
     }
   }
@@ -81,7 +81,7 @@ impl TileStorage
         match e {
           Error::NoSuchObjectInRemote(_) => Err(e),
           _ => {
-            error!("{}", e);
+            warn!("{}", e);
             Err(e)
           }
         }

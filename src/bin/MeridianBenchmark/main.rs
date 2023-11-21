@@ -23,7 +23,7 @@ fn main()
   ).expect("Failed to create GeoRectangle");
   let _ = match convert_georectangle(path.as_str(),
                                rectangle,
-                               Resolution::Low,
+                               Resolution::High,
                                (0.0, 200.0),
                                ImageFormat::PNG,
                                ShapeMode::Square)
