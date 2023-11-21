@@ -17,16 +17,16 @@ fn main()
     .into_string()
     .unwrap();
   let rectangle = GeoRectangle::from_center_and_size(
-    GeoCoordinate::new_2d(45.0, 80.0),
-    5_000_000.0,
-    5_000_000.0
+    GeoCoordinate::new_2d(0.0, 0.0),
+    30_000_000.0,
+    30_000_000.0
   ).expect("Failed to create GeoRectangle");
   let _ = match convert_georectangle(path.as_str(),
                                rectangle,
                                Resolution::Low,
                                (0.0, 200.0),
                                ImageFormat::PNG,
-                               ShapeMode::AsProvided)
+                               ShapeMode::Square)
   {
     Ok(_) => (),
     Err(e) => {
