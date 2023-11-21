@@ -89,7 +89,7 @@ impl GeoCoordinate
   pub fn azimuth_to(&self, other: &GeoCoordinate) -> Result<f32, Error>
   {
     if !self.valid() || !other.valid() {
-      return Err(Error::OperationOnInvalidCoordinate);
+      return Err(Error::OperationOnInvalidCoordinate(self.clone()));
     }
     let d_lon = (other.longitude - self.longitude).to_radians();
     let lat1_rad = self.latitude.to_radians();
@@ -105,7 +105,7 @@ impl GeoCoordinate
   pub fn distance_to(&self, other: &GeoCoordinate) -> Result<f32, Error>
   {
     if !self.valid() || !other.valid() {
-      return Err(Error::OperationOnInvalidCoordinate);
+      return Err(Error::OperationOnInvalidCoordinate(self.clone()));
     }
     let d_lat = (other.latitude - self.latitude).to_radians();
     let d_lon = (other.longitude - self.longitude).to_radians();
@@ -122,7 +122,7 @@ impl GeoCoordinate
     -> Result<GeoCoordinate, Error>
   {
     if !self.valid() {
-      return Err(Error::OperationOnInvalidCoordinate);
+      return Err(Error::OperationOnInvalidCoordinate(self.clone()));
     }
 
     let ratio = distance as f64 / consts::EARTH_MEAN_RADIUS as f64;

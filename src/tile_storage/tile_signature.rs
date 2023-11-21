@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::path::MAIN_SEPARATOR;
 use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::quarter::Quarter;
@@ -9,6 +10,18 @@ pub struct TileSignature
 {
   pub latitude: i8,
   pub longitude: i16
+}
+
+impl Display for TileSignature
+{
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
+  {
+    write!(f, "[{}, {} ({:?})]",
+           self.latitude,
+           self.longitude,
+           self.quarter()
+    )
+  }
 }
 
 impl TileSignature

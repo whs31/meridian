@@ -176,10 +176,7 @@ fn save_image(image: &ImageBuffer<Luma<u8>, Vec<u8>>, path: &str)
       info!("Image saved to {}", &path);
       Ok(())
     },
-    Err(e) => {
-      error!("Failed to save image: {}", e);
-      Err(Error::ImageSaveFailure)
-    }
+    Err(e) => Err(Error::ImageSaveFailure(e))
   }
 }
 

@@ -83,7 +83,7 @@ impl GeoRectangle
   pub fn center(&self) -> Result<GeoCoordinate, Error>
   {
     if self.top_left == self.bottom_right {
-      return Err(Error::OperationOnInvalidCoordinate);
+      return Err(Error::OperationOnInvalidCoordinate(self.top_left.clone()));
     }
 
     let c_lat = (self.top_left.latitude + self.bottom_right.latitude) / 2.0;

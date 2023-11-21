@@ -18,9 +18,9 @@ impl TileIdentity
     let start = Utc::now().time();
     let data_raw = match GeoTiff::from_file(&file_path) {
       Ok(x) => { x },
-      Err(_) => {
+      Err(e) => {
         warn!("Failed to decode tiff file from {}", file_path);
-        return Err(Error::TiffError);
+        return Err(Error::TiffError(e));
       }
     };
     let end = Utc::now().time();
@@ -29,10 +29,7 @@ impl TileIdentity
 
     let im_size = match imagesize::size(&file_path) {
       Ok(x) => { x },
-      Err(_) => {
-        warn!("Failed to get image size from {}", file_path);
-        return Err(Error::ImageSizeError);
-      }
+      Err(e) => return Err(Error::ImageSizeError(e))
     };
     debug!("Image size: {:?}", im_size);
 

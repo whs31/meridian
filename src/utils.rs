@@ -1,13 +1,14 @@
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use crate::errors::Error;
+use crate::positioning::geocoordinate::GeoCoordinate;
 
 pub type StaticHeapObject<T> = Lazy<Mutex<Box<T>>>;
 
 pub fn validate_coordinate(coordinate: (f64, f64)) -> Result<(f64, f64), Error>
 {
   if coordinate.0 < -90.0 || coordinate.0 > 90.0 || coordinate.1 < -180.0 || coordinate.1 > 180.0 {
-    return Err(Error::InvalidCoordinate);
+    return Err(Error::OperationOnInvalidCoordinate(GeoCoordinate::new_2d(coordinate.0, coordinate.1)));
   }
   const THRESHOLD: f64 = 0.00001;
   let mut lat = coordinate.0;

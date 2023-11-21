@@ -14,17 +14,17 @@ impl Quarter
   #[allow(dead_code)]
   pub fn from_str(value: &str) -> Result<Self, Error>
   {
-    if value.len() != 1 { return Err(Error::InvalidQuarterDirectorySpecifier) }
+    if value.len() != 1 { return Err(Error::InvalidQuarterDirectorySpecifier(value.to_string())) }
     let as_int = match value.parse::<u8>() {
       Ok(x) => x,
-      Err(_) => return Err(Error::InvalidQuarterDirectorySpecifier)
+      Err(_) => return Err(Error::InvalidQuarterDirectorySpecifier(value.to_string()))
     };
     return match as_int {
       0 => Ok(Quarter::TopLeft),
       1 => Ok(Quarter::TopRight),
       2 => Ok(Quarter::BottomLeft),
       3 => Ok(Quarter::BottomRight),
-      _ => Err(Error::InvalidQuarterDirectorySpecifier)
+      _ => Err(Error::InvalidQuarterDirectorySpecifier(value.to_string()))
     }
   }
 

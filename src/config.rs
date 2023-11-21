@@ -51,7 +51,7 @@ impl Config
   pub fn get(&self, section: &str, key: &str) -> Result<String, Error>
   {
     return match self.ini.get(section, key) {
-      None => { Err(Error::ConfigMissingKey) }
+      None => { Err(Error::ConfigMissingKey(key.to_string())) }
       Some(x) => { Ok(x) }
     }
   }

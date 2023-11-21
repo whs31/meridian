@@ -40,7 +40,7 @@ impl TileStorage
   pub fn get(&self, signature: TileSignature) -> Result<&TileIdentity, Error>
   {
     return match self.table.get(&signature) {
-      None => { Err(Error::NoSuchTile) },
+      None => { Err(Error::NoSuchTile(signature)) },
       Some(x) => { Ok(x.as_ref()) }
     }
   }
@@ -85,7 +85,7 @@ impl TileStorage
     debug!("Downloading file {} from {}", target, source);
     let response = match reqwest::get(&source).await {
       Ok(x) => x,
-      Err(_) => { return Err(Error::NetworkFailure) }
+      Err(e) => { return Err(Error::NetworkFailure(e)) }
     };
     let total = response
       .content_length()
@@ -99,16 +99,12 @@ impl TileStorage
     pb.set_message(format!("Downloading {:?} from {}", signature, source));
 
     debug!("Checking if response is successful...");
-    if !response.status().is_success() {
-      warn!("Response status: ERROR");
-      return Err(Error::NetworkFailure);
-    }
     debug!("Response status: OK");
     debug!("Making missing folders to target {target}...");
     fs::create_dir_all(target[..target.rfind(MAIN_SEPARATOR).unwrap()].to_string()).unwrap();
     let mut file = match fs::File::create(&target) {
       Ok(x) => { x }
-      Err(_) => { return Err(Error::FileCreationFailure) }
+      Err(e) => { return Err(Error::FileCreationFailure(e)) }
     };
     debug!("File status: OK");
 
@@ -117,11 +113,11 @@ impl TileStorage
 
     while let Some(item) = stream.next().await {
       let chunk = item.unwrap();
-      match file.write_all(&chunk).or(Err(Error::WriteToFileFailure)) {
+      match file.write_all(&chunk) {
         Ok(_) => {},
         Err(_) => {
           warn!("Failed to download or emplace file in cache at: {}, from: {}", target, source);
-          return Err(Error::WriteToFileFailure);
+          return Err(Error::WriteToFileFailure(target));
         }
       }
       let new = (downloaded + chunk.len() as u64).min(total);
