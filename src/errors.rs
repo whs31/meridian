@@ -2,6 +2,7 @@
 #[allow(dead_code)]
 pub enum Error
 {
+  NotImplemented,
   NoSuchTile,
   NetworkFailure,
   InvalidQuarterDirectorySpecifier,

@@ -28,3 +28,4 @@ indicatif = "0.17.7"
 futures-util = "0.3.29"
 futures = "0.3.29"
 tokio = { version = "1.34.0", features = ["rt", "macros", "rt-multi-thread"] }
+thiserror = "1.0.50"
