@@ -1,5 +1,4 @@
 use futures_util::stream::StreamExt;
-use std::env::current_dir;
 use std::fs;
 use std::io::{Write};
 use std::path::MAIN_SEPARATOR;
@@ -8,7 +7,6 @@ use log::{debug, error, info, warn};
 use once_cell::sync::Lazy;
 use chrono::Utc;
 use indicatif::{ProgressBar, ProgressStyle};
-use crate::config::CONFIG;
 use crate::errors::Error;
 use crate::tile_storage::tile_identity::TileIdentity;
 use crate::tile_storage::tile_signature::TileSignature;
@@ -47,7 +45,7 @@ impl TileStorage
 
   pub fn is_cached(&self, signature: TileSignature) -> bool
   {
-    let path = self.get_absolute_path(&signature);
+    let path = &signature.to_abs_path();
     debug!("Checking if signature {:?} at path {} exists", signature, path);
     return std::path::Path::new(&path).exists();
   }
@@ -80,8 +78,8 @@ impl TileStorage
   {
     let start = Utc::now().time();
 
-    let target = self.get_absolute_path(signature);
-    let source = self.get_url(signature);
+    let target = signature.to_abs_path();
+    let source = signature.to_url();
     debug!("Downloading file {} from {}", target, source);
     let response = match reqwest::get(&source).await {
       Ok(x) => x,
@@ -143,39 +141,14 @@ impl TileStorage
   fn insert(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
     self.table.insert(*signature, Box::new(match TileIdentity::new(
-      self.get_absolute_path(&signature)
+      signature.to_abs_path()
     ) {
       Ok(x) => { x },
       Err(e) => {
-        error!("Failed to decode tiff file from {}", self.get_absolute_path(&signature));
+        error!("Failed to decode tiff file from {}", &signature.to_abs_path());
         return Err(e);
       }
     }));
     Ok(())
-  }
-
-  fn get_absolute_path(&self, signature: &TileSignature) -> String
-  {
-    format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}",
-      current_dir()
-        .unwrap()
-        .into_os_string()
-        .into_string()
-        .unwrap(),
-      CONFIG
-        .lock()
-        .unwrap()
-        .get("Elevation", "cache_dir")
-        .unwrap(), signature.to_relative_path())
-  }
-
-  fn get_url(&self, signature: &TileSignature) -> String
-  {
-    format!("{}/{}", CONFIG
-      .lock()
-      .unwrap()
-      .get("Elevation", "remote_url")
-      .unwrap(), signature.to_relative_path()
-      .replace('\\', "/"))
   }
 }

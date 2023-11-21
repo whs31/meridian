@@ -1,5 +1,6 @@
 use std::fmt::Display;
 use std::path::MAIN_SEPARATOR;
+use crate::config::CONFIG;
 use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::quarter::Quarter;
 
@@ -50,15 +51,6 @@ impl TileSignature
     return if self.latitude < 0 && self.longitude < 0 { Quarter::BottomLeft } else { Quarter::BottomRight }
   }
 
-  pub fn to_relative_path(&self) -> String
-  {
-    return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}.{EXTENSION}",
-                   self.quarter().to_u8(),
-                   self.latitude.abs(),
-                   self.longitude.abs()
-    ).to_string()
-  }
-
   pub fn georectangle_size(&self) -> (usize, usize)
   {
     (
@@ -69,5 +61,39 @@ impl TileSignature
         .distance_to(&GeoCoordinate::new(self.latitude as f64, (self.longitude + 1) as f64, 0.0))
         .unwrap() as usize
     )
+  }
+
+  pub fn to_relative_path(&self) -> String
+  {
+    return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}.{EXTENSION}",
+                   self.quarter().to_u8(),
+                   self.latitude.abs(),
+                   self.longitude.abs()
+    ).to_string()
+  }
+
+  pub fn to_abs_path(&self) -> String
+  {
+    format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}",
+            std::env::current_dir()
+              .unwrap()
+              .into_os_string()
+              .into_string()
+              .unwrap(),
+            CONFIG
+              .lock()
+              .unwrap()
+              .get("Elevation", "cache_dir")
+              .unwrap(), self.to_relative_path())
+  }
+
+  pub fn to_url(&self) -> String
+  {
+    format!("{}/{}", CONFIG
+      .lock()
+      .unwrap()
+      .get("Elevation", "remote_url")
+      .unwrap(), self.to_relative_path()
+      .replace('\\', "/"))
   }
 }
