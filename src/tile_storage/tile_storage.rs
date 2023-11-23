@@ -1,7 +1,6 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
-use futures_util::future::err;
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use once_cell::sync::Lazy;
 use crate::errors::Error;
 use crate::tile_storage::net_fetch::NetworkFetcher;
@@ -16,8 +15,46 @@ pub static STORAGE: StaticHeapObject<TileStorage> = Lazy::new(
 pub struct TileStorage
 {
   table: HashMap<TileSignature, Box<TileIdentity>>,
-  deque: VecDeque<TileSignature>,
-  network: NetworkFetcher
+  network: NetworkFetcher,
+  limiter: MemoryLimiter
+}
+
+struct MemoryLimiter
+{
+  pub max_tile_count: usize,
+  queue: VecDeque<TileSignature>
+}
+
+impl MemoryLimiter
+{
+  pub fn new(max_tile_count: usize) -> Self
+  {
+    Self {
+      max_tile_count,
+      queue: VecDeque::new()
+    }
+  }
+
+  pub fn test(&mut self, signature: &TileSignature) -> Option<TileSignature>
+  {
+    return match self.queue
+      .iter()
+      .position(|x| x == signature) {
+      None => {
+        self.queue.push_front(signature.clone());
+        if self.queue.len() > self.max_tile_count {
+          self.queue.pop_back();
+          Some(signature.clone())
+        }
+        else { None }
+      }
+      Some(x) => {
+        self.queue.remove(x);
+        self.queue.push_front(signature.clone());
+        None
+      }
+    }
+  }
 }
 
 impl TileStorage
@@ -26,8 +63,8 @@ impl TileStorage
   {
     Self {
       table: HashMap::new(),
-      deque: VecDeque::new(),
-      network: NetworkFetcher::new()
+      network: NetworkFetcher::new(),
+      limiter: MemoryLimiter::new(5)
     }
   }
 
@@ -36,18 +73,31 @@ impl TileStorage
     return self.table.contains_key(&signature);
   }
 
-  pub fn get(&self, signature: TileSignature) -> Result<&TileIdentity, Error>
+  pub fn test(&mut self, signature: &TileSignature)
   {
-    return match self.table.get(&signature) {
+    match self.limiter.test(&signature) {
+      Some(x) => {
+        let rm = self.table.remove(&x);
+        println!("{}, {}", self.table.len(), rm.is_none());
+      },
+      None => {}
+    }
+  }
+
+  pub fn get(&mut self, signature: TileSignature) -> Result<&TileIdentity, Error>
+  {
+    match self.table.get(&signature) {
       None => { Err(Error::NoSuchTile(signature)) },
-      Some(x) => { Ok(x.as_ref()) }
+      Some(x) => {
+        self.test(&signature);
+        Ok(x.as_ref())
+      }
     }
   }
 
   pub fn is_cached(&self, signature: TileSignature) -> bool
   {
     let path = &signature.to_abs_path();
-    debug!("Checking if signature {:?} at path {} exists", signature, path);
     return std::path::Path::new(&path).exists();
   }
 
@@ -60,7 +110,7 @@ impl TileStorage
     if self.is_available(signature.clone()) {
       return self.get(signature);
     }
-    debug!("Checking if signature {:?} is cached...", signature);
+
     if self.is_cached(signature.clone()) {
       debug!("Tile {:?} is cached, loading...", signature);
       self.insert(&signature)?;
@@ -98,23 +148,6 @@ impl TileStorage
       }
     ));
     Ok(())
-  }
-  fn filter(&mut self, signature: &TileSignature)
-  {
-    let pos = match self.deque.binary_search(signature) {
-      Ok(x) => { x }
-      Err(_) => {
-        self.deque.push_back(*signature);
-        self.deque.len() - 1
-      }
-    };
-    self.deque.swap(0, pos);
-    if self.deque.len() > 20 {
-      match self.deque.pop_back() {
-        None => {}
-        Some(sign) => { self.table.remove(&sign); }
-      }
-    }
   }
 }
 
