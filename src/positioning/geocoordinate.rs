@@ -35,7 +35,8 @@ impl Display for GeoCoordinate
 {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
   {
-    write!(f, "({:.7}°, {:.7}°, {:.1} m)", self.latitude, self.longitude, self.altitude)
+    write!(f, "({:.7}°, {:.7}°, {:.1} m)",
+           self.latitude, self.longitude, self.altitude)
   }
 }
 

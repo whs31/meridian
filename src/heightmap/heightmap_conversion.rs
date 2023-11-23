@@ -120,7 +120,9 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   pb1.finish_with_message(format!("Min/max found: {:?}", min_max));
   debug!("Min/max: {:?}", min_max);
 
-  let mut image: GrayImage = ImageBuffer::new(size as u32, size as u32);
+  let mut image: Box<GrayImage> = Box::new(
+    ImageBuffer::new(size as u32, size as u32)
+  );
   debug!("Converting...");
   let pb = ProgressBar::new(size as u64);
   pb.set_style(ProgressStyle::with_template(
@@ -166,7 +168,7 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
     .unwrap();
 
   debug!("Saving conversion result to {}...", &path);
-  save_image(&image, &path)
+  save_image(image.as_ref(), &path)
 }
 
 fn save_image(image: &ImageBuffer<Luma<u8>, Vec<u8>>, path: &str)

@@ -51,7 +51,7 @@ impl TileStorage
     return std::path::Path::new(&path).exists();
   }
 
-  pub fn get_or_emplace(&mut self, signature: TileSignature) -> Result<&TileIdentity, Error>
+  pub fn emplace(&mut self, signature: TileSignature) -> Result<&TileIdentity, Error>
   {
     if self.network.is_unavailable(&signature) {
       return Err(Error::NoSuchObjectInRemote(signature.clone()));

@@ -1,5 +1,6 @@
 use crate::errors::Error;
 use crate::positioning::geocoordinate::GeoCoordinate;
+use crate::tile_storage::tile_identity::TileIdentity;
 use crate::tile_storage::tile_signature::TileSignature;
 use crate::tile_storage::tile_storage::STORAGE;
 use crate::utils::validate_coordinate;
@@ -19,8 +20,12 @@ pub fn elevation_at(coordinate: (f64, f64)) -> Result<f32, Error>
     .unwrap();
   let coord = validate_coordinate(coordinate)?;
   let key = TileSignature::from_f64(coord.0, coord.1);
-  let image_size = storage.get_or_emplace(key)?.size;
-  let data = &storage.get_or_emplace(key)?.data;
+  let val = match storage.get(key) {
+    Ok(x) => x,
+    Err(_) => storage.emplace(key)?
+  };
+  let image_size = val.size;
+  let data = val.data.as_ref();
   let tile_size = key.georectangle_size();
   let requested_coordinate = GeoCoordinate::new(coord.0, coord.1, 0.0);
   let distance_2d = (
