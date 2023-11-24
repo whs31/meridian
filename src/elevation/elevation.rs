@@ -20,9 +20,9 @@ pub fn elevation_at(coordinate: (f64, f64)) -> Result<f32, Error>
     .unwrap();
   let coord = validate_coordinate(coordinate)?;
   let key = TileSignature::from_f64(coord.0, coord.1);
-  let val = match storage.get(key) {
+  let val = match storage.get(&key) {
     Ok(x) => x,
-    Err(_) => storage.emplace(key)?
+    Err(_) => storage.load(&key)?
   };
   let image_size = val.size;
   let data = val.data.as_ref();

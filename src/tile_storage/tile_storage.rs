@@ -1,7 +1,9 @@
 use std::collections::{HashMap, VecDeque};
+use std::io::sink;
 use std::sync::Mutex;
 use log::{debug, info, warn};
 use once_cell::sync::Lazy;
+use reqwest::get;
 use crate::errors::Error;
 use crate::tile_storage::net_fetch::NetworkFetcher;
 use crate::tile_storage::tile_identity::TileIdentity;
@@ -68,82 +70,66 @@ impl TileStorage
     }
   }
 
-  pub fn is_available(&self, signature: TileSignature) -> bool
+  pub fn get(&self, signature: &TileSignature) -> Result<&TileIdentity, Error>
+  {
+    return match self.table.get(signature) {
+      None => Err(Error::NoSuchTile(signature.clone())),
+      Some(x) => Ok(x.as_ref())
+    }
+  }
+
+  pub fn has(&self, signature: TileSignature) -> bool
   {
     return self.table.contains_key(&signature);
   }
 
-  pub fn test(&mut self, signature: &TileSignature)
+  pub fn load(&mut self, signature: &TileSignature) -> Result<&TileIdentity, Error>
   {
-    match self.limiter.test(&signature) {
-      Some(x) => {
-        let rm = self.table.remove(&x);
-        println!("{}, {}", self.table.len(), rm.is_none());
-      },
-      None => {}
+    if self.network.is_unavailable(signature) {
+      return Err(Error::NoSuchObjectInRemote(signature.clone()))
     }
-  }
 
-  pub fn get(&mut self, signature: TileSignature) -> Result<&TileIdentity, Error>
-  {
-    match self.table.get(&signature) {
-      None => { Err(Error::NoSuchTile(signature)) },
-      Some(x) => {
-        self.test(&signature);
-        Ok(x.as_ref())
+    return match self.cache(signature) {
+      Ok(_) => self.get(signature),
+      Err(_) => {
+        self.download(signature)?;
+        self.get(signature)
       }
     }
   }
 
-  pub fn is_cached(&self, signature: TileSignature) -> bool
+  fn cache(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
-    let path = &signature.to_abs_path();
-    return std::path::Path::new(&path).exists();
+    if !self.is_cached(signature) {
+      return Err(Error::NoSuchTile(signature.clone()))
+    }
+
+    self.add(signature)?;
+    Ok(())
   }
 
-  pub fn emplace(&mut self, signature: TileSignature) -> Result<&TileIdentity, Error>
+  fn download(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
-    if self.network.is_unavailable(&signature) {
-      return Err(Error::NoSuchObjectInRemote(signature.clone()));
-    }
-
-    if self.is_available(signature.clone()) {
-      return self.get(signature);
-    }
-
-    if self.is_cached(signature.clone()) {
-      debug!("Tile {:?} is cached, loading...", signature);
-      self.insert(&signature)?;
-      return self.get(signature);
-    }
-    info!("Tile {:?} is not available, downloading...", signature);
-
-    return match self.network.download_tile(&signature) {
-      Ok(_) => {
-        if self.is_cached(signature.clone()) {
-          debug!("Tile {:?} is cached, loading...", &signature);
-          self.insert(&signature)?;
-        }
-        self.get(signature)
-      },
+    return match self.network.download_tile(signature) {
+      Ok(_) => self.cache(signature),
       Err(e) => {
-        self.network.make_unavailable(&signature);
-        match e {
-          Error::NoSuchObjectInRemote(_) => Err(e),
-          _ => {
-            warn!("{}", e);
-            Err(e)
-          }
-        }
+        self.network.make_unavailable(signature);
+        Err(e)
       }
     };
   }
 
-  fn insert(&mut self, signature: &TileSignature) -> Result<(), Error>
+  fn is_cached(&self, signature: &TileSignature) -> bool
+  {
+    return std::path::Path::new(&signature.to_abs_path())
+      .exists()
+  }
+
+  fn add(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
     self.table.insert(*signature, Box::new(
       match TileIdentity::new(signature.to_abs_path()) {
-        Ok(x) => { x },
+        Ok(x) => x,
         Err(e) => return Err(e)
       }
     ));
