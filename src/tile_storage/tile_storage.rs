@@ -26,7 +26,7 @@ impl TileStorage
     Self {
       table: HashMap::new(),
       network: NetworkFetcher::new(),
-      limiter: TileLimiter::new(25)
+      limiter: TileLimiter::new(40)
     }
   }
 
@@ -59,9 +59,13 @@ impl TileStorage
     }
   }
 
+  pub fn unload_all(&mut self)
+  {
+    self.table.clear();
+  }
+
   fn unload(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
-    println!("Unloading {}", signature);
     return match self.table.remove(signature) {
       None => Err(Error::NoSuchTile(signature.clone())),
       Some(_) => Ok(())

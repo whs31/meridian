@@ -1,12 +1,16 @@
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::ops::{Div, Mul};
 use std::path::MAIN_SEPARATOR;
 use image::{GrayImage, ImageBuffer, Luma};
 use indicatif::{ProgressBar, ProgressStyle};
+use json::object;
 use log::{debug, error, info};
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
 use crate::positioning::georectangle::{ExtendMode, GeoRectangle};
+use crate::utils::replace_extension;
 
 #[derive(Debug, PartialEq)]
 pub enum ImageFormat
@@ -65,8 +69,8 @@ impl Resolution
 }
 
 pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
-                            target_size: Resolution, bounds: (f32, f32),
-                            format: ImageFormat, shape_mode: ShapeMode)
+                            target_size: Resolution, format: ImageFormat,
+                            shape_mode: ShapeMode)
   -> Result<(), Error>
 {
   if format == ImageFormat::RAW {
@@ -79,7 +83,6 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   info!("Converting georectangle {}", &georectangle);
   info!("Target size:\t\t {}x{} px", size, size);
   info!("Format:\t\t {:?} (.{})", format, format.extension());
-  info!("Bounds:\t\t {:?}", bounds);
   info!("Target path:\t\t {}", path);
 
   debug!("Georectangle size: {:?}", georectangle.size());
@@ -118,12 +121,12 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
     }
   }
   pb1.finish_with_message(format!("Min/max found: {:?}", min_max));
-  debug!("Min/max: {:?}", min_max);
+
+  save_json_info(replace_extension(path.as_str(), "json").as_str(), min_max)?;
 
   let mut image: Box<GrayImage> = Box::new(
     ImageBuffer::new(size as u32, size as u32)
   );
-  debug!("Converting...");
   let pb = ProgressBar::new(size as u64);
   pb.set_style(ProgressStyle::with_template(
     "{wide_msg} {spinner:.green} [{bar:20.cyan/blue}] \
@@ -183,6 +186,27 @@ fn save_image(image: &ImageBuffer<Luma<u8>, Vec<u8>>, path: &str)
   }
 }
 
+fn save_json_info(path: &str, min_max: (i16, i16)) -> Result<(), Error>
+{
+  let json = object!
+  {
+    min: min_max.0,
+    max: min_max.1
+  };
+
+  let mut file = match File::create(path) {
+    Ok(x) => x,
+    Err(e) => return Err(Error::FileCreationFailure(e))
+  };
+  return match file.write_all(json
+    .to_string()
+    .as_bytes())
+  {
+    Ok(_) => Ok(()),
+    Err(e) => Err(Error::WriteToFileFailure(e.to_string()))
+  }
+}
+
 #[cfg(test)]
 mod tests
 {
@@ -205,7 +229,6 @@ mod tests
     let _ = convert_georectangle(path.as_str(),
                                  rectangle,
                                  Resolution::Low,
-                                 (0.0, 200.0),
                                  ImageFormat::PNG,
                                  ShapeMode::Square);
   }

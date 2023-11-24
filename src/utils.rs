@@ -20,3 +20,11 @@ pub fn validate_coordinate(coordinate: (f64, f64)) -> Result<(f64, f64), Error>
 
   return Ok((lat, lon));
 }
+
+pub fn replace_extension(path: &str, new_extension: &str) -> String
+{
+  let mut p = path.to_string();
+  let i = p.rfind('.').unwrap();
+  p.replace_range((i + 1).., new_extension);
+  return p;
+}
