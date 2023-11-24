@@ -7,12 +7,13 @@ use image::{GrayImage, ImageBuffer, Luma};
 use indicatif::{ProgressBar, ProgressStyle};
 use json::object;
 use log::{debug, error, info};
+use num_derive::FromPrimitive;
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
 use crate::positioning::georectangle::{ExtendMode, GeoRectangle};
 use crate::utils::replace_extension;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, FromPrimitive)]
 pub enum ImageFormat
 {
   PNG,
@@ -40,14 +41,14 @@ impl ImageFormat
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromPrimitive)]
 pub enum ShapeMode
 {
   Square,
   AsProvided
 }
 
-#[derive(Debug)]
+#[derive(Debug, FromPrimitive)]
 pub enum Resolution
 {
   Low,
