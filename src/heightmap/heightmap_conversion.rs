@@ -51,6 +51,7 @@ pub enum ShapeMode
 #[derive(Debug, FromPrimitive)]
 pub enum Resolution
 {
+  UltraLow,
   Low,
   Medium,
   High
@@ -62,9 +63,10 @@ impl Resolution
   {
     match self
     {
-      Resolution::Low => 1024,
-      Resolution::Medium => 2048,
-      Resolution::High => 4096
+      Resolution::UltraLow => 513,
+      Resolution::Low => 1025,
+      Resolution::Medium => 2049,
+      Resolution::High => 4097
     }
   }
 }
