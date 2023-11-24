@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use log::{debug};
 use crate::errors::Error;
 use chrono::Utc;
 use crate::geotiff::GeoTiff;

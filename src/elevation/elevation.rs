@@ -1,8 +1,7 @@
 use crate::errors::Error;
 use crate::positioning::geocoordinate::GeoCoordinate;
-use crate::tile_storage::tile_identity::TileIdentity;
-use crate::tile_storage::tile_signature::TileSignature;
-use crate::tile_storage::tile_storage::STORAGE;
+use crate::tile_storage::TileSignature;
+use crate::tile_storage::STORAGE;
 use crate::utils::validate_coordinate;
 
 pub trait Elevation {

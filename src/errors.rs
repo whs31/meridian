@@ -1,7 +1,7 @@
 use thiserror::Error;
 use crate::geotiff::TiffParserError;
 use crate::positioning::geocoordinate::GeoCoordinate;
-use crate::tile_storage::tile_signature::TileSignature;
+use crate::tile_storage::TileSignature;
 
 #[derive(Debug, Error)]
 #[allow(dead_code)]

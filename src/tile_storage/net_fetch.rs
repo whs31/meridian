@@ -4,9 +4,9 @@ use std::io::Write;
 use std::path::MAIN_SEPARATOR;
 use chrono::Utc;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use crate::errors::Error;
-use crate::tile_storage::tile_signature::TileSignature;
+use crate::tile_storage::TileSignature;
 
 pub struct NetworkFetcher
 {

@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::path::MAIN_SEPARATOR;
 use crate::config::CONFIG;
 use crate::positioning::geocoordinate::GeoCoordinate;
-use crate::tile_storage::quarter::Quarter;
+use crate::tile_storage::Quarter;
 
 pub static EXTENSION: &'static str = "tif";
 pub(crate) struct Bounds

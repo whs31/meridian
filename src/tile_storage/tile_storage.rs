@@ -1,13 +1,11 @@
-use std::collections::{HashMap, VecDeque};
-use std::io::sink;
+use std::collections::{HashMap};
 use std::sync::Mutex;
-use log::{debug, info, warn};
 use once_cell::sync::Lazy;
-use reqwest::get;
 use crate::errors::Error;
-use crate::tile_storage::net_fetch::NetworkFetcher;
-use crate::tile_storage::tile_identity::TileIdentity;
-use crate::tile_storage::tile_signature::TileSignature;
+use crate::tile_storage::TileLimiter;
+use crate::tile_storage::NetworkFetcher;
+use crate::tile_storage::TileIdentity;
+use crate::tile_storage::TileSignature;
 use crate::utils::StaticHeapObject;
 
 pub static STORAGE: StaticHeapObject<TileStorage> = Lazy::new(
@@ -18,45 +16,7 @@ pub struct TileStorage
 {
   table: HashMap<TileSignature, Box<TileIdentity>>,
   network: NetworkFetcher,
-  limiter: MemoryLimiter
-}
-
-struct MemoryLimiter
-{
-  pub max_tile_count: usize,
-  queue: VecDeque<TileSignature>
-}
-
-impl MemoryLimiter
-{
-  pub fn new(max_tile_count: usize) -> Self
-  {
-    Self {
-      max_tile_count,
-      queue: VecDeque::new()
-    }
-  }
-
-  pub fn test(&mut self, signature: &TileSignature) -> Option<TileSignature>
-  {
-    return match self.queue
-      .iter()
-      .position(|x| x == signature) {
-      None => {
-        self.queue.push_front(signature.clone());
-        if self.queue.len() > self.max_tile_count {
-          self.queue.pop_back();
-          Some(signature.clone())
-        }
-        else { None }
-      }
-      Some(x) => {
-        self.queue.remove(x);
-        self.queue.push_front(signature.clone());
-        None
-      }
-    }
-  }
+  limiter: TileLimiter
 }
 
 impl TileStorage
@@ -66,12 +26,13 @@ impl TileStorage
     Self {
       table: HashMap::new(),
       network: NetworkFetcher::new(),
-      limiter: MemoryLimiter::new(5)
+      limiter: TileLimiter::new(25)
     }
   }
 
-  pub fn get(&self, signature: &TileSignature) -> Result<&TileIdentity, Error>
+  pub fn get(&mut self, signature: &TileSignature) -> Result<&TileIdentity, Error>
   {
+    self.limiter.rearrange(signature);
     return match self.table.get(signature) {
       None => Err(Error::NoSuchTile(signature.clone())),
       Some(x) => Ok(x.as_ref())
@@ -95,6 +56,15 @@ impl TileStorage
         self.download(signature)?;
         self.get(signature)
       }
+    }
+  }
+
+  fn unload(&mut self, signature: &TileSignature) -> Result<(), Error>
+  {
+    println!("Unloading {}", signature);
+    return match self.table.remove(signature) {
+      None => Err(Error::NoSuchTile(signature.clone())),
+      Some(_) => Ok(())
     }
   }
 
@@ -127,6 +97,10 @@ impl TileStorage
 
   fn add(&mut self, signature: &TileSignature) -> Result<(), Error>
   {
+    match self.limiter.add(signature) {
+      None => (),
+      Some(x) => self.unload(&x)?
+    };
     self.table.insert(*signature, Box::new(
       match TileIdentity::new(signature.to_abs_path()) {
         Ok(x) => x,
