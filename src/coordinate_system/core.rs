@@ -4,6 +4,8 @@ use meridian_positioning::constants::EARTH_MEAN_CIRCUMFERENCE;
 
 const THRESHOLD: f64 = 0.9999;
 pub const TILE_SIZE: usize = 256;
+pub const OSM_MAX_ZOOM: usize = 22;
+pub const OSM_MIN_ZOOM: usize = 0;
 
 pub fn project_to_web_mercator(lat: f64, lon: f64) -> (f64, f64)
 {

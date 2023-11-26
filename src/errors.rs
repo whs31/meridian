@@ -11,6 +11,7 @@ pub enum Error
   #[error("No such object in remote: {0}")] NoSuchObjectInRemote(TileSignature),
   #[error("Invalid quarter directory specifier: {0}")] InvalidQuarterDirectorySpecifier(String),
   #[error("Missing key: {0}")] ConfigMissingKey(String),
+  #[error("Invalid argument: {0}")] InvalidArgument(String),
 
   #[error(transparent)] Request(#[from] reqwest::Error),
   #[error(transparent)] Image(#[from] image::ImageError),
