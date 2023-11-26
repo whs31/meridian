@@ -1,5 +1,6 @@
 use std::f64::consts::{E, PI};
 use std::ops::Div;
+use meridian_positioning::positioning::constants::EARTH_MEAN_CIRCUMFERENCE;
 
 const THRESHOLD: f64 = 0.9999;
 pub const TILE_SIZE: usize = 256;
@@ -19,6 +20,16 @@ pub fn project_to_web_mercator(lat: f64, lon: f64) -> (f64, f64)
       .div(4.0 * PI)
     )
   )
+}
+
+pub fn horizontal_tile_distance(lat: f64, zoom: u8) -> f64
+{
+  EARTH_MEAN_CIRCUMFERENCE as f64 * lat.cos().powi(zoom as i32)
+}
+
+pub fn horizontal_pixel_distance(lat: f64, zoom: u8) -> f64
+{
+  horizontal_tile_distance(lat, zoom).div(TILE_SIZE as f64)
 }
 
 fn conjugate_ratio(x: f64, b: f64) -> f64 { (x + b) / (x - b) }
