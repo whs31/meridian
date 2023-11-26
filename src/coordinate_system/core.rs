@@ -1,5 +1,5 @@
 use std::f64::consts::{E, PI};
-use std::ops::Div;
+use std::ops::{Div, Mul};
 use meridian_positioning::positioning::constants::EARTH_MEAN_CIRCUMFERENCE;
 
 const THRESHOLD: f64 = 0.9999;
@@ -24,7 +24,11 @@ pub fn project_to_web_mercator(lat: f64, lon: f64) -> (f64, f64)
 
 pub fn horizontal_tile_distance(lat: f64, zoom: u8) -> f64
 {
-  EARTH_MEAN_CIRCUMFERENCE as f64 * lat.cos().powi(zoom as i32)
+  lat
+    .cos()
+    .div(2.0
+      .powi(zoom as i32)
+    ).mul(EARTH_MEAN_CIRCUMFERENCE as f64)
 }
 
 pub fn horizontal_pixel_distance(lat: f64, zoom: u8) -> f64
