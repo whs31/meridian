@@ -11,7 +11,6 @@ include:
   - local: /.gitlab/build-rust-ubuntu.yml
   - local: /.gitlab/build-rust-windows.yml
   - local: /.gitlab/test-rust.yml
-  - local: /.gitlab/test-rust-windows.yml
   - local: /.gitlab/compose-static.yml
   - local: /.gitlab/compose-dynamic.yml
   - local: /.gitlab/build-cxx-astra.yml

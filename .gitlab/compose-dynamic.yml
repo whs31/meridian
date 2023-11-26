@@ -4,7 +4,7 @@ compose dynamic:
   needs:
     - job: astra rust build
     - job: windows rust build
-    - job: windows rust test
+    - job: rust test
       artifacts: true
 
   script:

@@ -1,9 +1,9 @@
-astra rust test:
+rust test:
   stage: test-rust
-  tags: [alse]
+  tags: [windows]
   allow_failure: true
   needs:
-    - job: astra rust build
+    - job: windows rust build
       artifacts: true
 
   cache:
@@ -13,4 +13,9 @@ astra rust test:
 
   script:
     - cargo --version
-    - cargo test
+    - cargo +nightly test -- --format=json -Z unstable-options --report-time | junitify --out $CI_PROJECT_DIR/tests/
+
+  artifacts:
+    when: always
+    reports:
+      junit: $CI_PROJECT_DIR/tests/*.xml
