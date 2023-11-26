@@ -9,7 +9,7 @@ mod utils;
 pub mod elevation;
 mod ffi;
 pub mod heightmap;
-mod coordinate_system;
+pub mod coordinate_system;
 
 pub fn init_logger() -> bool
 {

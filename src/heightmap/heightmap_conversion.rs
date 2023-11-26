@@ -178,13 +178,16 @@ fn save_json_info(path: &str, min_max: (i16, i16)) -> Result<(), Error>
 {
   let json = object!
   {
-    min: min_max.0,
-    max: min_max.1
+    heightmap:
+    {
+      min: min_max.0,
+      max: min_max.1
+    }
   };
 
   let mut file = File::create(path)?;
   file.write_all(json
-    .to_string()
+    .pretty(4)
     .as_bytes())?;
   Ok(())
 }
