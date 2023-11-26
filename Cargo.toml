@@ -13,6 +13,9 @@ bench = false
 name = "MeridianBenchmark"
 bench = false
 
+[dependencies.meridian_positioning]
+path = "libs/meridian_positioning"
+
 [dependencies]
 pretty_env_logger = "0.4.0"
 log = "0.4.14"
