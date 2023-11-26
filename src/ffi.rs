@@ -4,7 +4,7 @@ use std::env;
 use std::ffi::{c_char, c_double, c_float, c_int, CString};
 use meridian_positioning::positioning::{GeoCoordinate, GeoRectangle};
 use num_traits::FromPrimitive;
-use crate::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, Resolution, ShapeMode};
+use crate::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, Resolution};
 use crate::tile_storage::STORAGE;
 
 static BINARY_DIRECTORY: Lazy<String> = Lazy::new(|| {

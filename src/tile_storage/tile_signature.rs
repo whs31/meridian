@@ -5,24 +5,6 @@ use crate::config::CONFIG;
 use crate::tile_storage::Quarter;
 
 pub static EXTENSION: &'static str = "tif";
-pub(crate) struct Bounds
-{
-  min: i16,
-  max: i16
-}
-
-impl Bounds
-{
-  fn new(min: i16, max: i16) -> Self
-  {
-    Bounds {
-      min, max
-    }
-  }
-}
-
-pub(crate) const LAT_BOUNDS: Bounds = Bounds{min: -90, max: 90};
-pub(crate) const LON_BOUNDS: Bounds = Bounds{min: -180, max: 180};
 
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, Ord, PartialOrd)]
 pub struct TileSignature

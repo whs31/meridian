@@ -10,7 +10,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 bench = false
 
 [[bin]]
-name = "MeridianBenchmark"
+name = "meridian_benchmark"
 bench = false
 
 [dependencies.meridian_positioning]

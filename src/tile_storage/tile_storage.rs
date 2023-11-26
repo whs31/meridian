@@ -39,6 +39,7 @@ impl TileStorage
     }
   }
 
+  #[allow(dead_code)]
   pub fn has(&self, signature: TileSignature) -> bool
   {
     return self.table.contains_key(&signature);
