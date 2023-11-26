@@ -166,9 +166,8 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   pb.finish_with_message(" Conversion done!");
   debug!("Making missing folders to target {target_path}...");
 
-  fs::create_dir_all(path[..path.rfind(MAIN_SEPARATOR).unwrap()]
-    .to_string())
-    .unwrap();
+  fs::create_dir_all(path[..path.rfind(MAIN_SEPARATOR).unwrap_or(path.len())]
+    .to_string())?;
 
   debug!("Saving conversion result to {}...", &path);
   save_image(image.as_ref(), &path)

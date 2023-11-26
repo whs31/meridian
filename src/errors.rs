@@ -42,5 +42,6 @@ pub enum Error
   #[error("Failed to write to file: {0}")]
   WriteToFileFailure(String),
 
-  #[error(transparent)] Positioning(#[from] meridian_positioning::positioning::errors::PositioningError)
+  #[error(transparent)] Positioning(#[from] meridian_positioning::positioning::errors::PositioningError),
+  #[error(transparent)] Io(#[from] std::io::Error)
 }
