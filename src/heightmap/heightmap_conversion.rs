@@ -7,10 +7,10 @@ use image::{GrayImage, ImageBuffer, Luma};
 use indicatif::{ProgressBar, ProgressStyle};
 use json::object;
 use log::{debug, error, info};
+use meridian_positioning::positioning::{CardinalDirection, GeoRectangle};
 use num_derive::FromPrimitive;
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;
-use crate::positioning::georectangle::{ExtendMode, GeoRectangle};
 use crate::utils::replace_extension;
 
 #[derive(Debug, PartialEq, FromPrimitive)]
@@ -72,8 +72,7 @@ impl Resolution
 }
 
 pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
-                            target_size: Resolution, format: ImageFormat,
-                            shape_mode: ShapeMode)
+                            target_size: Resolution, format: ImageFormat)
   -> Result<(), Error>
 {
   if format == ImageFormat::RAW {
@@ -88,15 +87,13 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   info!("Format:\t\t {:?} (.{})", format, format.extension());
   info!("Target path:\t\t {}", path);
 
-  debug!("Georectangle size: {:?}", georectangle.size());
-  let square = match shape_mode {
-    ShapeMode::Square => georectangle.to_square(ExtendMode::Extend)?,
-    ShapeMode::AsProvided => georectangle
-  };
+  // let square = match shape_mode {
+  //   ShapeMode::Square => georectangle.to_square(ExtendMode::Extend)?,
+  //   ShapeMode::AsProvided => georectangle
+  // };
+  let square = georectangle.clone();
   debug!("New georectangle: {}", square);
-  debug!("New georectangle size: {:?}", square.size());
-  debug!("Centers: old: {}, new: {}", georectangle.center()?, square.center()?);
-
+  debug!("Centers: old: {}, new: {}", georectangle.center(), square.center());
   debug!("Finding min/max...");
   let pb1 = ProgressBar::new(size as u64);
   pb1.set_style(ProgressStyle::with_template(
@@ -109,13 +106,13 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
   let mut table: Vec<Vec<i16>> = vec![vec![0; size]; size];
   for i in 0..size {
     pb1.set_position(i as u64);
-    let base_coordinate = square.top_left
+    let base_coordinate = square.top_left()
       .at_distance_and_azimuth(i as f32 * square.height_meters()? / size as f32,
-                               180.0, 0.0)?;
+                               CardinalDirection::South.to_degrees())?;
     for j in 0..size {
       let elevation = base_coordinate
         .at_distance_and_azimuth(j as f32 * square.width_meters()? / size as f32,
-                                 90.0, 0.0)?
+                                 CardinalDirection::East.to_degrees())?
         .elevation()
         .unwrap_or(0.0);
       min_max.0 = elevation.min(min_max.0 as f32) as i16;
@@ -232,7 +229,7 @@ mod tests
     let _ = convert_georectangle(path.as_str(),
                                  rectangle,
                                  Resolution::Low,
-                                 ImageFormat::PNG,
-                                 ShapeMode::Square);
+                                 ImageFormat::PNG
+    );
   }
 }

@@ -1,7 +1,7 @@
 use std::fmt::Display;
 use std::path::MAIN_SEPARATOR;
+use meridian_positioning::positioning::GeoCoordinate;
 use crate::config::CONFIG;
-use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::Quarter;
 
 pub static EXTENSION: &'static str = "tif";
@@ -72,11 +72,11 @@ impl TileSignature
   pub fn georectangle_size(&self) -> (usize, usize)
   {
     (
-      GeoCoordinate::new(self.latitude as f64, self.longitude as f64, 0.0)
-        .distance_to(&GeoCoordinate::new((self.latitude + 1) as f64, self.longitude as f64, 0.0))
+      GeoCoordinate::new(self.latitude as f64, self.longitude as f64, None)
+        .distance_to(&GeoCoordinate::new((self.latitude + 1) as f64, self.longitude as f64, None))
         .unwrap() as usize,
-      GeoCoordinate::new(self.latitude as f64, self.longitude as f64, 0.0)
-        .distance_to(&GeoCoordinate::new(self.latitude as f64, (self.longitude + 1) as f64, 0.0))
+      GeoCoordinate::new(self.latitude as f64, self.longitude as f64, None)
+        .distance_to(&GeoCoordinate::new(self.latitude as f64, (self.longitude + 1) as f64, None))
         .unwrap() as usize
     )
   }

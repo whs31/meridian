@@ -2,10 +2,9 @@ use crate::{elevation, init_logger};
 use once_cell::sync::Lazy;
 use std::env;
 use std::ffi::{c_char, c_double, c_float, c_int, CString};
+use meridian_positioning::positioning::{GeoCoordinate, GeoRectangle};
 use num_traits::FromPrimitive;
 use crate::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, Resolution, ShapeMode};
-use crate::positioning::geocoordinate::GeoCoordinate;
-use crate::positioning::georectangle::GeoRectangle;
 use crate::tile_storage::STORAGE;
 
 static BINARY_DIRECTORY: Lazy<String> = Lazy::new(|| {
@@ -66,9 +65,10 @@ pub extern fn meridian_convert_georectangle_from_center(target_path: *const c_ch
   radius: c_float, resolution: c_int, image_format: c_int)
   -> bool
 {
-  let georectangle = match GeoRectangle::from_center_and_size(
-    GeoCoordinate::new_2d(center_latitude, center_longitude),
-    radius, radius
+  let georectangle = match GeoRectangle::from_center_meters(
+    GeoCoordinate::new(center_latitude, center_longitude, None),
+    radius,
+    radius
   ) {
     Ok(x) => x,
     Err(_) => return false
@@ -83,8 +83,7 @@ pub extern fn meridian_convert_georectangle_from_center(target_path: *const c_ch
   return match convert_georectangle(path.as_str(),
                                     georectangle,
                                     Resolution::from_i32(resolution as i32).unwrap(),
-                                    ImageFormat::from_i32(image_format as i32).unwrap(),
-  ShapeMode::Square) {
+                                    ImageFormat::from_i32(image_format as i32).unwrap()) {
     Ok(_) => true,
     Err(_) => false
   }

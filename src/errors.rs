@@ -1,6 +1,5 @@
 use thiserror::Error;
 use crate::geotiff::TiffParserError;
-use crate::positioning::geocoordinate::GeoCoordinate;
 use crate::tile_storage::TileSignature;
 
 #[derive(Debug, Error)]
@@ -34,12 +33,6 @@ pub enum Error
   #[error("Failed to read image size: {0}")]
   ImageSizeError(imagesize::ImageError),
 
-  #[error("Operation on invalid coordinate: {0}")]
-  OperationOnInvalidCoordinate(GeoCoordinate),
-
-  #[error("Operation on invalid coordinate pair: {0}, {1}")]
-  OperationOnInvalidCoordinatePair(GeoCoordinate, GeoCoordinate),
-
   #[error("Failed to save image: {0}")]
   ImageSaveFailure(image::ImageError),
 
@@ -47,5 +40,7 @@ pub enum Error
   FileCreationFailure(std::io::Error),
 
   #[error("Failed to write to file: {0}")]
-  WriteToFileFailure(String)
+  WriteToFileFailure(String),
+
+  #[error(transparent)] Positioning(#[from] meridian_positioning::positioning::errors::PositioningError)
 }

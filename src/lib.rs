@@ -8,7 +8,6 @@ pub mod config;
 mod utils;
 pub mod elevation;
 pub mod ffi;
-pub mod positioning;
 pub mod heightmap;
 
 pub fn init_logger() -> bool
