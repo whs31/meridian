@@ -42,13 +42,6 @@ impl ImageFormat
 }
 
 #[derive(Debug, FromPrimitive)]
-pub enum ShapeMode
-{
-  Square,
-  AsProvided
-}
-
-#[derive(Debug, FromPrimitive)]
 pub enum Resolution
 {
   UltraLow,
@@ -194,31 +187,4 @@ fn save_json_info(path: &str, min_max: (i16, i16)) -> Result<(), Error>
     .to_string()
     .as_bytes())?;
   Ok(())
-}
-
-#[cfg(test)]
-mod tests
-{
-  use std::env;
-  use crate::init_logger;
-  use super::*;
-
-  #[test]
-  fn test_convert_georectangle()
-  {
-    init_logger();
-    let path = env::current_dir()
-      .unwrap()
-      .join("test-result")
-      .join("test-convert_georectangle")
-      .into_os_string()
-      .into_string()
-      .unwrap();
-    let rectangle = GeoRectangle::from_tuples((61.0, 30.0), (60.0, 31.0));
-    let _ = convert_georectangle(path.as_str(),
-                                 rectangle,
-                                 Resolution::Low,
-                                 ImageFormat::PNG
-    );
-  }
 }

@@ -1,7 +1,7 @@
 use std::env;
 use meridian_positioning::positioning::{GeoCoordinate, GeoRectangle};
 
-use meridian::heightmap::heightmap_conversion::{convert_georectangle, ImageFormat, Resolution};
+use meridian::heightmap::{convert_georectangle, ImageFormat, Resolution};
 use meridian::init_logger;
 
 fn main()

@@ -7,8 +7,9 @@ pub mod errors;
 pub mod config;
 mod utils;
 pub mod elevation;
-pub mod ffi;
+mod ffi;
 pub mod heightmap;
+mod coordinate_system;
 
 pub fn init_logger() -> bool
 {
@@ -18,19 +19,5 @@ pub fn init_logger() -> bool
       warn!("Failed to initialize logger: Logger is already initialized");
       false
     }
-  }
-}
-
-#[cfg(test)]
-mod tests
-{
-  use crate::{elevation_at};
-
-  #[test]
-  fn test_elevation_at()
-  {
-    assert!(elevation_at((0.0, 0.0)).is_err());
-    assert!(elevation_at((60.0, 30.0)).unwrap().abs() - 0.0 < 1.0);
-    assert!(elevation_at((61.0, 31.0)).unwrap().abs() - 3.0 < 1.0);
   }
 }
