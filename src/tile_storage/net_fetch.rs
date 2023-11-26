@@ -47,14 +47,10 @@ impl NetworkFetcher
     let target = signature.to_abs_path();
     let source = signature.to_url();
     debug!("Downloading file {} from {}", target, source);
-    let response = match self.client
+    let response = self.client
       .get(&source)
       .send()
-      .await
-    {
-      Ok(x) => x,
-      Err(e) => { return Err(Error::NetworkFailure(e)) }
-    };
+      .await?;
 
     if !response.status().is_success() {
       return Err(Error::NetworkStatusCodeError(response.status().as_u16(), signature.clone()));
@@ -75,10 +71,7 @@ impl NetworkFetcher
     std::fs::create_dir_all(target[..target.rfind(MAIN_SEPARATOR).unwrap()]
       .to_string())
       .unwrap();
-    let mut file = match std::fs::File::create(&target) {
-      Ok(x) => { x }
-      Err(e) => { return Err(Error::FileCreationFailure(e)) }
-    };
+    let mut file = std::fs::File::create(&target)?;
     debug!("File status: OK");
 
     let mut downloaded: u64 = 0;
@@ -86,13 +79,7 @@ impl NetworkFetcher
 
     while let Some(item) = stream.next().await {
       let chunk = item.unwrap();
-      match file.write_all(&chunk) {
-        Ok(_) => {},
-        Err(_) => {
-          warn!("Failed to download or emplace file in cache at: {}, from: {}", target, source);
-          return Err(Error::WriteToFileFailure(target));
-        }
-      }
+      file.write_all(&chunk)?;
       let new = (downloaded + chunk.len() as u64).min(total);
       downloaded = new;
       pb.set_position(new);

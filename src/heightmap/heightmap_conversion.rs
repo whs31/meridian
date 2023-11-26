@@ -176,13 +176,9 @@ pub fn convert_georectangle(target_path: &str, georectangle: GeoRectangle,
 fn save_image(image: &ImageBuffer<Luma<u8>, Vec<u8>>, path: &str)
   -> Result<(), Error>
 {
-  match image.save(path) {
-    Ok(_) => {
-      info!("Image saved to {}", &path);
-      Ok(())
-    },
-    Err(e) => Err(Error::ImageSaveFailure(e))
-  }
+  image.save(path)?;
+  info!("Image saved to {}", &path);
+  Ok(())
 }
 
 fn save_json_info(path: &str, min_max: (i16, i16)) -> Result<(), Error>
@@ -193,17 +189,11 @@ fn save_json_info(path: &str, min_max: (i16, i16)) -> Result<(), Error>
     max: min_max.1
   };
 
-  let mut file = match File::create(path) {
-    Ok(x) => x,
-    Err(e) => return Err(Error::FileCreationFailure(e))
-  };
-  return match file.write_all(json
+  let mut file = File::create(path)?;
+  file.write_all(json
     .to_string()
-    .as_bytes())
-  {
-    Ok(_) => Ok(()),
-    Err(e) => Err(Error::WriteToFileFailure(e.to_string()))
-  }
+    .as_bytes())?;
+  Ok(())
 }
 
 #[cfg(test)]

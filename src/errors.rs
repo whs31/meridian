@@ -12,9 +12,6 @@ pub enum Error
   #[error("No such tile: {0}")]
   NoSuchTile(TileSignature),
 
-  #[error("Network failure: {0}")]
-  NetworkFailure(reqwest::Error),
-
   #[error("Network status code fail: {0} for signature {1}")]
   NetworkStatusCodeError(u16, TileSignature),
 
@@ -27,21 +24,10 @@ pub enum Error
   #[error("Missing key: {0}")]
   ConfigMissingKey(String),
 
-  #[error("Failed to read file: {0}")]
-  TiffError(TiffParserError),
-
-  #[error("Failed to read image size: {0}")]
-  ImageSizeError(imagesize::ImageError),
-
-  #[error("Failed to save image: {0}")]
-  ImageSaveFailure(image::ImageError),
-
-  #[error("Failed to create file: {0}")]
-  FileCreationFailure(std::io::Error),
-
-  #[error("Failed to write to file: {0}")]
-  WriteToFileFailure(String),
-
+  #[error(transparent)] Request(#[from] reqwest::Error),
+  #[error(transparent)] Image(#[from] image::ImageError),
+  #[error(transparent)] Tiff(#[from] TiffParserError),
+  #[error(transparent)] ImageSize(#[from] imagesize::ImageError),
   #[error(transparent)] Positioning(#[from] meridian_positioning::positioning::errors::PositioningError),
   #[error(transparent)] Io(#[from] std::io::Error)
 }

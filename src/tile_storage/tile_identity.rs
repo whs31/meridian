@@ -16,20 +16,12 @@ impl TileIdentity
   {
     debug!("Decoding tiff file from {}", file_path);
     let start = Utc::now().time();
-    let data_raw = match GeoTiff::from_file(&file_path) {
-      Ok(x) => { x },
-      Err(e) => {
-        return Err(Error::TiffError(e));
-      }
-    };
+    let data_raw = GeoTiff::from_file(&file_path)?;
     let end = Utc::now().time();
     debug!("Decoding status: OK");
     debug!("Decoding tiff file from {} took {}ms", file_path, (end - start).num_milliseconds());
 
-    let im_size = match imagesize::size(&file_path) {
-      Ok(x) => { x },
-      Err(e) => return Err(Error::ImageSizeError(e))
-    };
+    let im_size = imagesize::size(&file_path)?;
     debug!("Image size: {:?}", im_size);
 
     Ok(Self {
