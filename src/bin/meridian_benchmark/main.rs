@@ -16,13 +16,13 @@ fn main()
     .into_string()
     .unwrap();
   let rectangle = GeoRectangle::from_center_meters(
-    GeoCoordinate::new(58.92206844421908, 22.378208157377035, None),
+    GeoCoordinate::new(45.285843, 34.238057, None),
     300_000.0,
     300_000.0
   ).expect("Failed to create GeoRectangle");
   let _ = match convert_georectangle(path.as_str(),
                                rectangle,
-                               Resolution::Low,
+                               Resolution::High,
                                ImageFormat::PNG
   )
   {

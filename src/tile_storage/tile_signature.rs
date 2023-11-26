@@ -4,8 +4,6 @@ use meridian_positioning::positioning::GeoCoordinate;
 use crate::config::CONFIG;
 use crate::tile_storage::Quarter;
 
-pub static EXTENSION: &'static str = "tif";
-
 #[derive(Eq, PartialEq, Hash, Copy, Clone, Debug, Ord, PartialOrd)]
 pub struct TileSignature
 {
@@ -63,9 +61,10 @@ impl TileSignature
     )
   }
 
-  pub fn to_relative_path(&self) -> String
+  pub fn to_relative_path(&self, extension: &str) -> String
   {
-    return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}.{EXTENSION}",
+    let dot = if extension.is_empty() { "" } else { "." };
+    return format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}{dot}{extension}",
                    self.quarter().to_u8(),
                    self.latitude.abs(),
                    self.longitude.abs()
@@ -74,26 +73,30 @@ impl TileSignature
 
   pub fn to_abs_path(&self) -> String
   {
+    let cfg = CONFIG.lock().unwrap();
+    let extension = cfg
+      .get("Elevation", "extension")
+      .unwrap_or("tif".to_string());
     format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}",
             std::env::current_dir()
               .unwrap()
               .into_os_string()
               .into_string()
               .unwrap(),
-            CONFIG
-              .lock()
-              .unwrap()
+            cfg
               .get("Elevation", "cache_dir")
-              .unwrap(), self.to_relative_path())
+              .unwrap(), self.to_relative_path(extension.as_str()))
   }
 
   pub fn to_url(&self) -> String
   {
-    format!("{}/{}", CONFIG
-      .lock()
-      .unwrap()
+    let cfg = CONFIG.lock().unwrap();
+    let extension = cfg
+      .get("Elevation", "extension")
+      .unwrap_or("tif".to_string());
+    format!("{}/{}", cfg
       .get("Elevation", "remote_url")
-      .unwrap(), self.to_relative_path()
+      .unwrap(), self.to_relative_path(extension.as_str())
       .replace('\\', "/"))
   }
 }

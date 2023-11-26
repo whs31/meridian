@@ -1,5 +1,6 @@
 use std::collections::{HashMap};
 use std::sync::Mutex;
+use log::warn;
 use once_cell::sync::Lazy;
 use crate::errors::Error;
 use crate::tile_storage::TileLimiter;
@@ -89,6 +90,7 @@ impl TileStorage
       Ok(_) => self.cache(signature),
       Err(e) => {
         self.network.make_unavailable(signature);
+        warn!("Network error: {}", e);
         Err(e)
       }
     };
