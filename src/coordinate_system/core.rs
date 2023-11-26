@@ -26,7 +26,7 @@ pub fn horizontal_tile_distance(lat: f64, zoom: u8) -> f64
 {
   lat
     .cos()
-    .div(2.0
+    .div(2.0_f64
       .powi(zoom as i32)
     ).mul(EARTH_MEAN_CIRCUMFERENCE as f64)
 }
