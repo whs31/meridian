@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::path::MAIN_SEPARATOR;
-use meridian_positioning::positioning::{GeoCoordinate, GeoRectangle};
+use meridian_positioning::{GeoCoordinate, GeoRectangle};
 use crate::coordinate_system::point::CoordinatePoint;
 use crate::errors::Error;
 use crate::heightmap;

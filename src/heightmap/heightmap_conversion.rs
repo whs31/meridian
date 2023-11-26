@@ -7,7 +7,7 @@ use image::{GrayImage, ImageBuffer, Luma};
 use indicatif::{ProgressBar, ProgressStyle};
 use json::object;
 use log::{debug, error, info};
-use meridian_positioning::positioning::{CardinalDirection, GeoRectangle};
+use meridian_positioning::{CardinalDirection, GeoRectangle};
 use num_derive::FromPrimitive;
 use crate::elevation::elevation::Elevation;
 use crate::errors::Error;

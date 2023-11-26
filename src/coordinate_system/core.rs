@@ -1,6 +1,6 @@
 use std::f64::consts::{E, PI};
 use std::ops::{Div, Mul};
-use meridian_positioning::positioning::constants::EARTH_MEAN_CIRCUMFERENCE;
+use meridian_positioning::constants::EARTH_MEAN_CIRCUMFERENCE;
 
 const THRESHOLD: f64 = 0.9999;
 pub const TILE_SIZE: usize = 256;

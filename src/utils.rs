@@ -1,6 +1,6 @@
 use std::sync::Mutex;
-use meridian_positioning::positioning::errors::PositioningError;
-use meridian_positioning::positioning::GeoCoordinate;
+use meridian_positioning::errors::PositioningError;
+use meridian_positioning::GeoCoordinate;
 use once_cell::sync::Lazy;
 
 pub type StaticHeapObject<T> = Lazy<Mutex<Box<T>>>;

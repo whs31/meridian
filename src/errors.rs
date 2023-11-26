@@ -16,6 +16,6 @@ pub enum Error
   #[error(transparent)] Image(#[from] image::ImageError),
   #[error(transparent)] Tiff(#[from] TiffParserError),
   #[error(transparent)] ImageSize(#[from] imagesize::ImageError),
-  #[error(transparent)] Positioning(#[from] meridian_positioning::positioning::errors::PositioningError),
+  #[error(transparent)] Positioning(#[from] meridian_positioning::errors::PositioningError),
   #[error(transparent)] Io(#[from] std::io::Error)
 }

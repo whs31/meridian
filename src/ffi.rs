@@ -2,7 +2,7 @@ use crate::{elevation, init_logger};
 use once_cell::sync::Lazy;
 use std::env;
 use std::ffi::{c_char, c_double, c_float, c_int, CString};
-use meridian_positioning::positioning::{GeoCoordinate, GeoRectangle};
+use meridian_positioning::{GeoCoordinate, GeoRectangle};
 use num_traits::FromPrimitive;
 use crate::heightmap::{convert_georectangle, ImageFormat, Resolution};
 use crate::tile_storage::STORAGE;

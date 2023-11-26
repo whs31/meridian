@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::path::MAIN_SEPARATOR;
-use meridian_positioning::positioning::GeoCoordinate;
+use meridian_positioning::GeoCoordinate;
 use crate::config::CONFIG;
 use crate::tile_storage::Quarter;
 

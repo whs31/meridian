@@ -1,5 +1,5 @@
 use std::fmt::Display;
-use meridian_positioning::positioning::GeoCoordinate;
+use meridian_positioning::GeoCoordinate;
 use crate::coordinate_system::core::{project_to_web_mercator, TILE_SIZE};
 
 #[derive(Debug, PartialOrd, PartialEq, Copy, Clone)]

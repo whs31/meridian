@@ -9,7 +9,9 @@ mod utils;
 pub mod elevation;
 mod ffi;
 pub mod heightmap;
-pub mod coordinate_system;
+mod tile_map;
+mod coordinate_system;
+pub use coordinate_system::Chunk;
 
 pub fn init_logger() -> bool
 {

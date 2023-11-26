@@ -1,4 +1,4 @@
-use meridian_positioning::positioning::GeoCoordinate;
+use meridian_positioning::GeoCoordinate;
 use crate::errors::Error;
 use crate::tile_storage::TileSignature;
 use crate::tile_storage::STORAGE;
