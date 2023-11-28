@@ -4,3 +4,6 @@
 [submodule "libs/meridian_positioning"]
 	path = libs/meridian_positioning
 	url = ../meridian-positioning.git
+[submodule "libs/parallel_downloader"]
+	path = libs/parallel_downloader
+	url = ../parallel-downloader

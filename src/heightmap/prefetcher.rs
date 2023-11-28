@@ -16,8 +16,7 @@ pub struct ElevationPrefetcher
   server_url: String,
   storage_url: String,
   extension: String,
-  parallel_threads: usize,
-  unavailable: HashSet<TileSignature>
+  parallel_threads: usize
 }
 
 impl ElevationPrefetcher
@@ -31,8 +30,7 @@ impl ElevationPrefetcher
       server_url,
       storage_url,
       extension,
-      parallel_threads,
-      unavailable: HashSet::new()
+      parallel_threads
     }
   }
 
@@ -42,7 +40,7 @@ impl ElevationPrefetcher
     let signatures = ElevationPrefetcher::split_rectangle(rect)?
       .iter()
       .cloned()
-      .filter(|s| !self.unavailable.contains(s) && !self.is_cached(
+      .filter(|s| !self.is_cached(
         s.to_abs_path_threadsafe(self.extension.as_str(), self.storage_url.as_str())
           .as_str()
       ))
