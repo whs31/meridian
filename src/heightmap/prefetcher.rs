@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::MAIN_SEPARATOR;
 use futures::{stream, StreamExt};
 use indicatif::{ProgressBar, ProgressStyle};
-use log::error;
+use log::{error, warn};
 use meridian_positioning::errors::PositioningError;
 use meridian_positioning::GeoRectangle;
 use crate::errors::Error;
@@ -42,7 +42,10 @@ impl ElevationPrefetcher
     let signatures = ElevationPrefetcher::split_rectangle(rect)?
       .iter()
       .cloned()
-      .filter(|s| !self.unavailable.contains(s))
+      .filter(|s| !self.unavailable.contains(s) && !self.is_cached(
+        s.to_abs_path_threadsafe(self.extension.as_str(), self.storage_url.as_str())
+          .as_str()
+      ))
       .collect::<Vec<TileSignature>>();
 
     let progress_bar = ProgressBar::new(signatures.len() as u64);
@@ -83,9 +86,8 @@ impl ElevationPrefetcher
       .for_each(|(i, b)| async {
         progress_bar.inc(1);
         match b {
-          Ok(Ok(_)) => (),
-          Ok(Err(e)) => error!("Got a reqwest::Error: {}", e), // TODO: to unavailable!
           Err(e) => error!("Got a tokio::JoinError: {}", e),
+          _ => ()
         }
       })
       .await;
@@ -93,6 +95,8 @@ impl ElevationPrefetcher
     println!();
     Ok(())
   }
+
+  fn is_cached(&self, path: &str) -> bool { std::path::Path::new(path).exists() }
 
   fn split_rectangle(rect: GeoRectangle) -> Result<Vec<TileSignature>, Error>
   {
