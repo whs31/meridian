@@ -24,7 +24,14 @@ fn main()
     cfg.get("Elevation", "extension").unwrap(),
     cfg.get("Elevation", "max_parallel_threads").unwrap().parse().unwrap()
   );
-  p.fetch(rectangle);
+  match p.fetch(rectangle)
+  {
+    Ok(_) => (),
+    Err(e) => {
+      eprintln!("{}", e);
+    }
+  }
+
   let path = env::current_dir()
     .unwrap()
     .join("test-chunk")

@@ -8,6 +8,7 @@ pub enum Error
   #[error("Not implemented")] NotImplemented,
   #[error("No such tile: {0}")] NoSuchTile(TileSignature),
   #[error("Network status code: {0} for signature {1}")] NetworkStatusCodeError(u16, TileSignature),
+  #[error("Network status code: {0} - {1}")] NetworkStatusCodeErrorStr(u16, String),
   #[error("No such object in remote: {0}")] NoSuchObjectInRemote(TileSignature),
   #[error("Invalid quarter directory specifier: {0}")] InvalidQuarterDirectorySpecifier(String),
   #[error("Missing key: {0}")] ConfigMissingKey(String),

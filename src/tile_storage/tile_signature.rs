@@ -77,15 +77,22 @@ impl TileSignature
     let extension = cfg
       .get("Elevation", "extension")
       .unwrap_or("tif".to_string());
+    self.to_abs_path_threadsafe(extension.as_str(), cfg
+      .get("Elevation", "cache_dir")
+      .unwrap().as_str()
+    )
+  }
+
+  pub fn to_abs_path_threadsafe(&self, extension: &str, cache_dir: &str) -> String
+  {
     format!("{}{MAIN_SEPARATOR}{}{MAIN_SEPARATOR}{}",
             std::env::current_dir()
               .unwrap()
               .into_os_string()
               .into_string()
               .unwrap(),
-            cfg
-              .get("Elevation", "cache_dir")
-              .unwrap(), self.to_relative_path(extension.as_str()))
+            cache_dir, self.to_relative_path(extension)
+    )
   }
 
   pub fn to_url(&self) -> String
