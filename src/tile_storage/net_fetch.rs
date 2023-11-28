@@ -1,3 +1,8 @@
+/*
+ * This is fallback solution for cases where ElevationPrefetcher
+ * fails to download a tile. Try not to use this struct.
+ */
+
 use futures_util::stream::StreamExt;
 use std::collections::HashSet;
 use std::io::Write;

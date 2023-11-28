@@ -40,6 +40,7 @@ impl Config
         config.set(ELEVATION_SECTION, "cache_dir",
                    Some(format!("cache{}elevations", MAIN_SEPARATOR).to_string()));
         config.set(ELEVATION_SECTION, "extension", Some("tif".to_string()));
+        config.set(ELEVATION_SECTION, "max_parallel_threads", Some("8".to_string()));
         config.write(DEFAULT_FILENAME).unwrap();
         Self {
           filename: DEFAULT_FILENAME.to_string(),

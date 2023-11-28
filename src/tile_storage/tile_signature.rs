@@ -94,9 +94,15 @@ impl TileSignature
     let extension = cfg
       .get("Elevation", "extension")
       .unwrap_or("tif".to_string());
-    format!("{}/{}", cfg
-      .get("Elevation", "remote_url")
-      .unwrap(), self.to_relative_path(extension.as_str())
-      .replace('\\', "/"))
+
+    self.to_url_threadsafe(extension.as_str(),
+                           cfg.get("Elevation", "remote_url").unwrap().as_str()
+    )
+  }
+
+  pub fn to_url_threadsafe(&self, extension: &str, url: &str) -> String
+  {
+    format!("{}/{}", url, self.to_relative_path(extension))
+      .replace('\\', "/")
   }
 }
